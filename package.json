@@ -1,0 +1,43 @@
+{
+  "name": "finance-budget-tracker",
+  "version": "1.0.0",
+  "description": "Personal finance and budget tracker with receipt scanning, categorization, and folder storage",
+  "main": "index.html",
+  "scripts": {
+    "start": "live-server --port=3000",
+    "build": "npm run minify-css && npm run minify-js",
+    "minify-css": "cleancss -o dist/style.min.css src/css/style.css",
+    "minify-js": "uglifyjs src/js/*.js -o dist/app.min.js",
+    "test": "jest"
+  },
+  "keywords": [
+    "finance",
+    "budget",
+    "receipt-scanner",
+    "expense-tracker",
+    "ocr",
+    "personal-finance"
+  ],
+  "author": "Finance Tracker Team",
+  "license": "MIT",
+  "dependencies": {
+    "chart.js": "^4.4.0",
+    "tesseract.js": "^5.0.4",
+    "date-fns": "^2.30.0",
+    "sortablejs": "^1.15.0",
+    "file-saver": "^2.0.5",
+    "jspdf": "^2.5.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2",
+    "clean-css-cli": "^5.6.2",
+    "uglify-js": "^3.17.4",
+    "jest": "^29.7.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

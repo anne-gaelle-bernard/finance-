@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💸 Finance & Budget Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .receipt-preview {
+            max-width: 200px;
+            max-height: 200px;
+            object-fit: cover;
+        }
+        .folder-item {
+            cursor: move;
+        }
+        .category-food { border-left: 4px solid #f59e0b; }
+        .category-transport { border-left: 4px solid #3b82f6; }
+        .category-shopping { border-left: 4px solid #ec4899; }
+        .category-utilities { border-left: 4px solid #10b981; }
+        .category-entertainment { border-left: 4px solid #8b5cf6; }
+        .category-healthcare { border-left: 4px solid #ef4444; }
+        .category-other { border-left: 4px solid #6b7280; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-wallet text-2xl mr-3"></i>
+                    <h1 class="text-xl font-bold">Finance Tracker</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="profileBtn" class="flex items-center space-x-2 hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition">
+                        <i class="fas fa-user-circle text-xl"></i>
+                        <span>Profile</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Dashboard Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Income</p>
+                        <p id="totalIncome" class="text-2xl font-bold text-green-600">$0.00</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fas fa-arrow-up text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Expenses</p>
+                        <p id="totalExpenses" class="text-2xl font-bold text-red-600">$0.00</p>
+                    </div>
+                    <div class="bg-red-100 p-3 rounded-full">
+                        <i class="fas fa-arrow-down text-red-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Net Savings</p>
+                        <p id="netSavings" class="text-2xl font-bold text-blue-600">$0.00</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i class="fas fa-piggy-bank text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Receipts Scanned</p>
+                        <p id="receiptsCount" class="text-2xl font-bold text-purple-600">0</p>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <i class="fas fa-receipt text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <button id="scanReceiptBtn" class="flex flex-col items-center p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition card-hover">
+                    <i class="fas fa-camera text-2xl mb-2"></i>
+                    <span class="text-sm font-medium">Scan Receipt</span>
+                </button>
+                
+                <button id="addExpenseBtn" class="flex flex-col items-center p-4 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-lg hover:from-red-600 hover:to-pink-700 transition card-hover">
+                    <i class="fas fa-minus-circle text-2xl mb-2"></i>
+                    <span class="text-sm font-medium">Add Expense</span>
+                </button>
+                
+                <button id="addIncomeBtn" class="flex flex-col items-center p-4 bg-gradient-to-r from-green-500 to-teal-600 text-white rounded-lg hover:from-green-600 hover:to-teal-700 transition card-hover">
+                    <i class="fas fa-plus-circle text-2xl mb-2"></i>
+                    <span class="text-sm font-medium">Add Income</span>
+                </button>
+                
+                <button id="manageFoldersBtn" class="flex flex-col items-center p-4 bg-gradient-to-r from-yellow-500 to-orange-600 text-white rounded-lg hover:from-yellow-600 hover:to-orange-700 transition card-hover">
+                    <i class="fas fa-folder text-2xl mb-2"></i>
+                    <span class="text-sm font-medium">Manage Folders</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column: Recent Transactions & Folders -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Recent Transactions -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">Recent Transactions</h2>
+                        <button id="viewAllBtn" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View All</button>
+                    </div>
+                    <div id="transactionsList" class="space-y-3">
+                        <!-- Transactions will be populated here -->
+                        <div class="text-center text-gray-500 py-8">
+                            <i class="fas fa-receipt text-4xl mb-4 opacity-50"></i>
+                            <p>No transactions yet. Start by scanning a receipt or adding an expense!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Folder Management -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">📁 Folders</h2>
+                        <button id="createFolderBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm">
+                            <i class="fas fa-plus mr-2"></i>New Folder
+                        </button>
+                    </div>
+                    <div id="foldersList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Default folders -->
+                        <div class="folder-item bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 transition cursor-pointer">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <i class="fas fa-folder text-yellow-500 text-xl mr-3"></i>
+                                    <div>
+                                        <h3 class="font-medium text-gray-800">2025 Taxes</h3>
+                                        <p class="text-sm text-gray-600">0 receipts • $0.00</p>
+                                    </div>
+                                </div>
+                                <i class="fas fa-ellipsis-v text-gray-400"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="folder-item bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 transition cursor-pointer">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <i class="fas fa-folder text-blue-500 text-xl mr-3"></i>
+                                    <div>
+                                        <h3 class="font-medium text-gray-800">Business Expenses</h3>
+                                        <p class="text-sm text-gray-600">0 receipts • $0.00</p>
+                                    </div>
+                                </div>
+                                <i class="fas fa-ellipsis-v text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Charts & Insights -->
+            <div class="space-y-8">
+                <!-- Spending by Category Chart -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Spending by Category</h2>
+                    <div class="relative h-64">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Budget Progress -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Budget Progress</h2>
+                    <div id="budgetProgress" class="space-y-4">
+                        <!-- Budget items will be populated here -->
+                        <div class="text-center text-gray-500 py-4">
+                            <i class="fas fa-chart-pie text-3xl mb-2 opacity-50"></i>
+                            <p class="text-sm">Set up budgets to track your spending</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming Reminders -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">📅 Reminders</h2>
+                    <div id="remindersList" class="space-y-3">
+                        <div class="text-center text-gray-500 py-4" id="noReminders">
+                            <i class="fas fa-bell text-3xl mb-2 opacity-50"></i>
+                            <p class="text-sm">No upcoming reminders</p>
+                        </div>
+                    </div>
+                    <button id="addReminderBtn" class="w-full mt-4 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition text-sm">
+                        <i class="fas fa-plus mr-2"></i>Add Reminder
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Receipt Scanner Modal -->
+    <div id="scannerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl max-w-2xl w-full max-h-screen overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">📸 Scan Receipt</h2>
+                        <button id="closeScannerBtn" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <!-- Upload Options -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <label for="fileInput" class="flex flex-col items-center p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 transition">
+                                <i class="fas fa-upload text-3xl text-gray-400 mb-2"></i>
+                                <span class="text-sm font-medium text-gray-600">Upload Image</span>
+                                <input type="file" id="fileInput" accept="image/*" class="hidden">
+                            </label>
+                            
+                            <button id="cameraBtn" class="flex flex-col items-center p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 transition">
+                                <i class="fas fa-camera text-3xl text-gray-400 mb-2"></i>
+                                <span class="text-sm font-medium text-gray-600">Use Camera</span>
+                            </button>
+                        </div>
+
+                        <!-- Camera Area -->
+                        <div id="cameraArea" class="hidden">
+                            <div class="relative">
+                                <video id="cameraStream" autoplay playsinline class="w-full max-h-64 bg-black rounded-lg"></video>
+                                <canvas id="cameraCanvas" class="hidden"></canvas>
+                            </div>
+                            <div class="mt-4 flex space-x-3">
+                                <button id="captureBtn" class="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition">
+                                    <i class="fas fa-circle-notch mr-2"></i>Capture Photo
+                                </button>
+                                <button id="stopCameraBtn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                    Stop Camera
+                                </button>
+                            </div>
+                            <p id="cameraError" class="hidden mt-2 text-sm text-red-600"></p>
+                        </div>
+                        
+                        <!-- Preview Area -->
+                        <div id="previewArea" class="hidden">
+                            <img id="receiptPreview" class="w-full max-h-64 object-contain rounded-lg border">
+                            <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-robot text-blue-600 mr-2"></i>
+                                    <span class="font-medium text-blue-800">AI Processing...</span>
+                                </div>
+                                <div id="ocrProgress" class="w-full bg-blue-200 rounded-full h-2">
+                                    <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Extracted Data Form -->
+                        <div id="extractedDataForm" class="hidden space-y-4">
+                            <h3 class="font-bold text-gray-800">Review Extracted Data</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Merchant</label>
+                                    <input type="text" id="merchantName" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                                    <input type="number" id="receiptAmount" step="0.01" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                    <input type="date" id="receiptDate" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                    <select id="receiptCategory" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="food">🍔 Food & Dining</option>
+                                        <option value="transport">🚗 Transportation</option>
+                                        <option value="shopping">🛍️ Shopping</option>
+                                        <option value="utilities">⚡ Utilities</option>
+                                        <option value="entertainment">🎬 Entertainment</option>
+                                        <option value="healthcare">🏥 Healthcare</option>
+                                        <option value="other">📦 Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                <textarea id="receiptNotes" rows="2" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Add any notes..."></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Assign to Folder</label>
+                                <select id="receiptFolder" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">No folder</option>
+                                    <option value="taxes">2025 Taxes</option>
+                                    <option value="business">Business Expenses</option>
+                                </select>
+                            </div>
+                            <div class="flex space-x-3">
+                                <button id="saveReceiptBtn" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">
+                                    <i class="fas fa-save mr-2"></i>Save Receipt
+                                </button>
+                                <button id="cancelReceiptBtn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div id="expenseModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl max-w-md w-full">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">➖ Add Expense</h2>
+                        <button id="closeExpenseBtn" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    
+                    <form id="expenseForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <input type="text" id="expenseDescription" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Grocery shopping">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                            <input type="number" id="expenseAmount" step="0.01" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0.00">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                            <select id="expenseCategory" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select category</option>
+                                <option value="food">🍔 Food & Dining</option>
+                                <option value="transport">🚗 Transportation</option>
+                                <option value="shopping">🛍️ Shopping</option>
+                                <option value="utilities">⚡ Utilities</option>
+                                <option value="entertainment">🎬 Entertainment</option>
+                                <option value="healthcare">🏥 Healthcare</option>
+                                <option value="other">📦 Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                            <input type="date" id="expenseDate" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                            <textarea id="expenseNotes" rows="2" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Optional notes..."></textarea>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button type="submit" class="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition">
+                                <i class="fas fa-plus mr-2"></i>Add Expense
+                            </button>
+                            <button type="button" id="cancelExpenseBtn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Reminder Modal -->
+    <div id="reminderModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl max-w-md w-full">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">📅 Add Reminder</h2>
+                        <button id="closeReminderBtn" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+
+                    <form id="reminderForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                            <input type="text" id="reminderTitle" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Pay electricity bill">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                <input type="date" id="reminderDate" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                                <input type="time" id="reminderTime" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                            <textarea id="reminderNotes" rows="2" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Optional notes..."></textarea>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button type="submit" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">
+                                <i class="fas fa-save mr-2"></i>Save Reminder
+                            </button>
+                            <button type="button" id="cancelReminderBtn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    
+    <!-- Floating Notes Button -->
+    <button id="openNotesPanelBtn" class="fixed bottom-6 right-6 bg-yellow-500 text-white shadow-lg rounded-full w-12 h-12 flex items-center justify-center hover:bg-yellow-600 transition z-40" title="Open Notes">
+        <i class="fas fa-sticky-note"></i>
+    </button>
+
+    <!-- Side Notes Panel -->
+    <div id="notesPanel" class="fixed inset-y-0 right-0 w-full max-w-md bg-white border-l shadow-xl hidden z-50">
+        <div class="h-full flex flex-col">
+            <div class="p-4 border-b flex items-center justify-between">
+                <h2 class="text-lg font-bold text-gray-800">📝 Quick Notes</h2>
+                <button id="closeNotesPanelBtn" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-4 space-y-4 overflow-y-auto flex-1">
+                <form id="sideNoteForm" class="space-y-3">
+                    <input type="text" id="sideNoteTitle" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Note title (optional)">
+                    <textarea id="sideNoteContent" rows="4" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Write your note..."></textarea>
+                    <div class="flex space-x-2">
+                        <button type="submit" class="flex-1 bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition">
+                            <i class="fas fa-save mr-2"></i>Save Note
+                        </button>
+                        <button type="button" id="clearSideNoteBtn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">Clear</button>
+                    </div>
+                </form>
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2">Your Notes</h3>
+                    <div id="sideNotesList" class="space-y-3">
+                        <div id="noSideNotes" class="text-center text-gray-500 py-4">
+                            <i class="fas fa-sticky-note text-3xl mb-2 opacity-50"></i>
+                            <p class="text-sm">No notes yet. Add your first note!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
