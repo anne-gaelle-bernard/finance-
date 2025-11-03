@@ -3,14 +3,19 @@ class FinanceTracker {
     constructor() {
         this.transactions = JSON.parse(localStorage.getItem('transactions')) || [];
         this.folders = JSON.parse(localStorage.getItem('folders')) || [
-            { id: 'taxes', name: '2025 Taxes', color: 'yellow', receipts: [], totalAmount: 0 },
-            { id: 'business', name: 'Business Expenses', color: 'blue', receipts: [], totalAmount: 0 }
+            { id: 'taxes', name: '2025 Taxes', color: 'rose', receipts: [], totalAmount: 0 },
+            { id: 'business', name: 'Business Expenses', color: 'pink', receipts: [], totalAmount: 0 }
         ];
         this.budgets = JSON.parse(localStorage.getItem('budgets')) || {};
         this.reminders = JSON.parse(localStorage.getItem('reminders')) || [];
         this.sideNotes = JSON.parse(localStorage.getItem('sideNotes')) || [];
+        this.goals = JSON.parse(localStorage.getItem('goals')) || [];
+        this.settings = JSON.parse(localStorage.getItem('settings')) || { name: '', currency: 'USD', theme: 'light', onboardingCompleted: false };
         this.editingNoteId = null;
-        
+        this.editingGoalId = null;
+        this.calculator = { expr: '', lastResult: 0 };
+        this.onboarding = { step: 0, stepsTotal: 4 };
+
         this.init();
     }
 
@@ -21,9 +26,16 @@ class FinanceTracker {
         this.renderFolders();
         this.renderReminders();
         this.renderSideNotes();
+        this.renderGoals();
         this.initializeChart();
         this.setDefaultDate();
         this.startReminderScheduler();
+        // Ensure UI reflects persisted settings (currency, etc.)
+        this.applySettingsToUI();
+        // Open onboarding on first run
+        if (!this.settings.onboardingCompleted) {
+            this.openOnboardingModal();
+        }
     }
 
     setupEventListeners() {
@@ -84,6 +96,110 @@ class FinanceTracker {
                 }
             });
         }
+
+        // Profile & Settings Modal
+        const profileBtn = document.getElementById('profileBtn');
+        if (profileBtn) profileBtn.addEventListener('click', () => this.openProfileModal());
+        const closeProfileBtn = document.getElementById('closeProfileBtn');
+        if (closeProfileBtn) closeProfileBtn.addEventListener('click', () => this.closeProfileModal());
+        const cancelProfileBtn = document.getElementById('cancelProfileBtn');
+        if (cancelProfileBtn) cancelProfileBtn.addEventListener('click', () => this.closeProfileModal());
+        const saveProfileBtn = document.getElementById('saveProfileBtn');
+        if (saveProfileBtn) saveProfileBtn.addEventListener('click', () => this.handleProfileSave());
+        const profileForm = document.getElementById('profileForm');
+        if (profileForm) profileForm.addEventListener('submit', (e) => { e.preventDefault(); this.handleProfileSave(); });
+
+        // Financial Goals Modal & Actions
+        const addGoalBtn = document.getElementById('addGoalBtn');
+        if (addGoalBtn) addGoalBtn.addEventListener('click', () => this.openGoalModal());
+        const closeGoalBtn = document.getElementById('closeGoalBtn');
+        if (closeGoalBtn) closeGoalBtn.addEventListener('click', () => this.closeGoalModal());
+        const cancelGoalBtn = document.getElementById('cancelGoalBtn');
+        if (cancelGoalBtn) cancelGoalBtn.addEventListener('click', () => this.closeGoalModal());
+        const goalForm = document.getElementById('goalForm');
+        if (goalForm) goalForm.addEventListener('submit', (e) => this.handleGoalSubmit(e));
+        const goalsList = document.getElementById('goalsList');
+        if (goalsList) {
+            goalsList.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (!btn) return;
+                if (btn.classList.contains('deleteGoalBtn')) {
+                    const id = btn.getAttribute('data-id');
+                    this.deleteGoal(id);
+                } else if (btn.classList.contains('editGoalBtn')) {
+                    const id = btn.getAttribute('data-id');
+                    this.startEditingGoal(id);
+                }
+            });
+            // Live update progress on slider input, persist on change
+            goalsList.addEventListener('input', (e) => {
+                const slider = e.target.closest('.goalProgressSlider');
+                if (!slider) return;
+                const id = slider.getAttribute('data-id');
+                const value = Number(slider.value) || 0;
+                const goal = this.goals.find(g => g.id === id);
+                if (!goal) return;
+                goal.currentAmount = Math.min(value, goal.targetAmount || 0);
+                const percent = goal.targetAmount > 0 ? Math.min(100, (goal.currentAmount / goal.targetAmount) * 100) : 0;
+                const progressEl = goalsList.querySelector(`.goal-progress[data-id="${id}"]`);
+                const textEl = goalsList.querySelector(`.goal-text[data-id="${id}"]`);
+                if (progressEl) progressEl.style.width = `${percent}%`;
+                if (textEl) textEl.textContent = `${this.formatCurrency(goal.currentAmount)} of ${this.formatCurrency(goal.targetAmount)}${goal.deadline ? ` • Due ${this.formatDate(goal.deadline)}` : ''}`;
+            });
+            goalsList.addEventListener('change', (e) => {
+                const slider = e.target.closest('.goalProgressSlider');
+                if (!slider) return;
+                const id = slider.getAttribute('data-id');
+                const value = Number(slider.value) || 0;
+                const goal = this.goals.find(g => g.id === id);
+                if (!goal) return;
+                goal.currentAmount = Math.min(value, goal.targetAmount || 0);
+                this.saveData();
+                this.renderGoals();
+                this.showNotification('Goal progress updated', 'success');
+            });
+        }
+
+        // Calculator Modal & Actions
+        const calcBtn = document.getElementById('calcBtn');
+        if (calcBtn) calcBtn.addEventListener('click', () => this.openCalculatorModal());
+        const closeCalcBtn = document.getElementById('closeCalcBtn');
+        if (closeCalcBtn) closeCalcBtn.addEventListener('click', () => this.closeCalculatorModal());
+        const cancelCalcBtn = document.getElementById('cancelCalcBtn');
+        if (cancelCalcBtn) cancelCalcBtn.addEventListener('click', () => this.closeCalculatorModal());
+        const copyCalcBtn = document.getElementById('copyCalcBtn');
+        if (copyCalcBtn) copyCalcBtn.addEventListener('click', () => this.copyCalculatorResult());
+        const calcKeys = document.getElementById('calcKeys');
+        if (calcKeys) {
+            calcKeys.addEventListener('click', (e) => {
+                const btn = e.target.closest('button[data-key]');
+                if (!btn) return;
+                const key = btn.getAttribute('data-key');
+                this.handleCalculatorKey(key);
+            });
+        }
+
+        // Theme Toggle
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', () => {
+                this.settings.theme = this.settings.theme === 'dark' ? 'light' : 'dark';
+                this.saveData();
+                this.applySettingsToUI();
+                const icon = themeToggleBtn.querySelector('i');
+                if (icon) icon.className = this.settings.theme === 'dark' ? 'fas fa-sun text-xl' : 'fas fa-moon text-xl';
+            });
+        }
+
+        // Onboarding controls
+        const closeOnboardingBtn = document.getElementById('closeOnboardingBtn');
+        const onboardingPrevBtn = document.getElementById('onboardingPrevBtn');
+        const onboardingNextBtn = document.getElementById('onboardingNextBtn');
+        const onboardingSkipBtn = document.getElementById('onboardingSkipBtn');
+        if (closeOnboardingBtn) closeOnboardingBtn.addEventListener('click', () => this.closeOnboardingModal());
+        if (onboardingPrevBtn) onboardingPrevBtn.addEventListener('click', () => this.prevOnboardingStep());
+        if (onboardingNextBtn) onboardingNextBtn.addEventListener('click', () => this.nextOnboardingStep());
+        if (onboardingSkipBtn) onboardingSkipBtn.addEventListener('click', () => this.completeOnboarding());
     }
 
     setDefaultDate() {
@@ -107,18 +223,21 @@ class FinanceTracker {
         
         const netSavings = totalIncome - totalExpenses;
         const receiptsCount = this.transactions.filter(t => t.hasReceipt).length;
-
-        document.getElementById('totalIncome').textContent = `$${totalIncome.toFixed(2)}`;
-        document.getElementById('totalExpenses').textContent = `$${totalExpenses.toFixed(2)}`;
-        document.getElementById('netSavings').textContent = `$${netSavings.toFixed(2)}`;
+        // Currency-aware display using profile settings
+        document.getElementById('totalIncome').textContent = this.formatCurrency(totalIncome);
+        document.getElementById('totalExpenses').textContent = this.formatCurrency(totalExpenses);
+        const netText = netSavings < 0
+            ? `-${this.formatCurrency(Math.abs(netSavings))}`
+            : this.formatCurrency(netSavings);
+        document.getElementById('netSavings').textContent = netText;
         document.getElementById('receiptsCount').textContent = receiptsCount;
 
-        // Update net savings color based on positive/negative
+        // Update net savings color based on positive/negative (elegant pink)
         const netSavingsElement = document.getElementById('netSavings');
         if (netSavings >= 0) {
-            netSavingsElement.className = 'text-2xl font-bold text-green-600';
+            netSavingsElement.className = 'text-2xl font-bold text-rose-600';
         } else {
-            netSavingsElement.className = 'text-2xl font-bold text-red-600';
+            netSavingsElement.className = 'text-2xl font-bold text-pink-700';
         }
     }
 
@@ -157,12 +276,12 @@ class FinanceTracker {
                         <h3 class="font-medium text-gray-800">${transaction.description}</h3>
                         <p class="text-sm text-gray-600">${this.formatDate(transaction.date)} • ${this.getCategoryName(transaction.category)}</p>
                         ${transaction.notes ? `<p class="text-xs text-gray-500 mt-1">${this.escapeHtml(transaction.notes)}</p>` : ''}
-                        ${transaction.folder ? `<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mt-1">${this.getFolderName(transaction.folder)}</span>` : ''}
+                        ${transaction.folder ? `<span class="inline-block bg-pink-100 text-pink-800 text-xs px-2 py-1 rounded-full mt-1">${this.getFolderName(transaction.folder)}</span>` : ''}
                     </div>
                 </div>
                 <div class="text-right">
-                    <p class="font-bold ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}">
-                        ${transaction.type === 'income' ? '+' : '-'}$${transaction.amount.toFixed(2)}
+                    <p class="font-bold ${transaction.type === 'income' ? 'text-rose-600' : 'text-pink-700'}">
+                        ${transaction.type === 'income' ? '+' : '-'}${this.formatCurrency(transaction.amount)}
                     </p>
                     ${transaction.hasReceipt ? '<i class="fas fa-receipt text-gray-400 text-sm mt-1"></i>' : ''}
                 </div>
@@ -564,8 +683,8 @@ class FinanceTracker {
             item.className = 'reminder-item flex items-center justify-between p-4 bg-gray-50 rounded-lg';
             item.innerHTML = `
                 <div class="flex items-center space-x-3">
-                    <div class="p-2 rounded-full bg-yellow-100">
-                        <i class="fas fa-bell text-yellow-600"></i>
+                    <div class="p-2 rounded-full bg-pink-100">
+                        <i class="fas fa-bell text-pink-600"></i>
                     </div>
                     <div>
                         <h3 class="font-medium text-gray-800">${this.escapeHtml(reminder.title)}</h3>
@@ -574,10 +693,10 @@ class FinanceTracker {
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <button class="mark-complete px-3 py-1 text-xs bg-green-100 text-green-700 rounded" data-id="${reminder.id}">
+                    <button class="mark-complete px-3 py-1 text-xs bg-rose-100 text-rose-700 rounded" data-id="${reminder.id}">
                         <i class="fas fa-check mr-1"></i>Done
                     </button>
-                    <button class="delete-reminder px-3 py-1 text-xs bg-red-100 text-red-700 rounded" data-id="${reminder.id}">
+                    <button class="delete-reminder px-3 py-1 text-xs bg-pink-100 text-pink-700 rounded" data-id="${reminder.id}">
                         <i class="fas fa-trash mr-1"></i>Delete
                     </button>
                 </div>
@@ -647,7 +766,7 @@ class FinanceTracker {
         const container = document.getElementById('foldersList');
         
         container.innerHTML = this.folders.map(folder => `
-            <div class="folder-item bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 transition cursor-pointer" data-folder-id="${folder.id}">
+            <div class="folder-item bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300 hover:border-pink-400 transition cursor-pointer" data-folder-id="${folder.id}">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center">
                         <i class="fas fa-folder text-${folder.color}-500 text-xl mr-3"></i>
@@ -668,7 +787,7 @@ class FinanceTracker {
             const folder = {
                 id: Date.now().toString(),
                 name: name,
-                color: 'blue',
+                color: 'pink',
                 receipts: [],
                 totalAmount: 0
             };
@@ -712,8 +831,8 @@ class FinanceTracker {
                 datasets: [{
                     data: [],
                     backgroundColor: [
-                        '#f59e0b', '#3b82f6', '#ec4899', '#10b981', 
-                        '#8b5cf6', '#ef4444', '#6b7280'
+                        '#fbcfe8', '#f9a8d4', '#f472b6', '#ec4899',
+                        '#db2777', '#be185d', '#9d174d'
                     ],
                     borderWidth: 0
                 }]
@@ -723,7 +842,17 @@ class FinanceTracker {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'bottom'
+                        position: 'bottom',
+                        labels: {
+                            color: '#6b7280',
+                            boxWidth: 12,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#ec4899',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff'
                     }
                 }
             }
@@ -782,6 +911,373 @@ class FinanceTracker {
     getFolderName(folderId) {
         const folder = this.folders.find(f => f.id === folderId);
         return folder ? folder.name : 'Unknown Folder';
+    }
+
+    // Profile & Settings
+    openProfileModal() {
+        const modal = document.getElementById('profileModal');
+        if (!modal) return;
+        const nameInput = document.getElementById('profileName');
+        const currencySelect = document.getElementById('profileCurrency');
+        if (nameInput) nameInput.value = this.settings?.name || '';
+        if (currencySelect) currencySelect.value = this.settings?.currency || 'USD';
+        modal.classList.remove('hidden');
+    }
+
+    closeProfileModal() {
+        const modal = document.getElementById('profileModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    handleProfileSave() {
+        const nameInput = document.getElementById('profileName');
+        const currencySelect = document.getElementById('profileCurrency');
+        const name = nameInput ? nameInput.value.trim() : '';
+        const currency = currencySelect ? currencySelect.value : 'USD';
+        this.settings = { ...(this.settings || {}), name, currency };
+        this.saveData();
+        this.applySettingsToUI();
+        this.showNotification('Profile saved', 'success');
+        this.closeProfileModal();
+    }
+
+    formatCurrency(amount) {
+        const currency = (this.settings && this.settings.currency) || 'USD';
+        try {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(Number(amount) || 0);
+        } catch (e) {
+            const symbols = { USD: '$', EUR: '€', GBP: '£', JPY: '¥' };
+            const symbol = symbols[currency] || '$';
+            return `${symbol}${(Number(amount) || 0).toFixed(2)}`;
+        }
+    }
+
+    applySettingsToUI() {
+        // Theme
+        const body = document.body;
+        if (body) {
+            if (this.settings && this.settings.theme === 'dark') {
+                body.classList.add('dark-theme');
+            } else {
+                body.classList.remove('dark-theme');
+            }
+        }
+        // Re-render key UI areas that depend on settings
+        this.updateDashboard();
+        this.renderTransactions();
+        this.renderGoals();
+        // Keep onboarding content in sync
+        this.renderOnboardingStep();
+    }
+
+    // Onboarding
+    openOnboardingModal() {
+        const modal = document.getElementById('onboardingModal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        this.onboarding.step = 0;
+        this.renderOnboardingStep();
+    }
+
+    closeOnboardingModal() {
+        const modal = document.getElementById('onboardingModal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+    }
+
+    nextOnboardingStep() {
+        if (this.onboarding.step < this.onboarding.stepsTotal - 1) {
+            this.onboarding.step++;
+            this.renderOnboardingStep();
+        } else {
+            this.completeOnboarding();
+        }
+    }
+
+    prevOnboardingStep() {
+        if (this.onboarding.step > 0) {
+            this.onboarding.step--;
+            this.renderOnboardingStep();
+        }
+    }
+
+    completeOnboarding() {
+        this.settings.onboardingCompleted = true;
+        this.saveData();
+        this.closeOnboardingModal();
+    }
+
+    renderOnboardingStep() {
+        const content = document.getElementById('onboardingContent');
+        const indicator = document.getElementById('onboardingStepIndicator');
+        if (!content || !indicator) return;
+        const step = this.onboarding.step;
+        const total = this.onboarding.stepsTotal;
+        indicator.textContent = `Étape ${step + 1} / ${total}`;
+        let html = '';
+        if (step === 0) {
+            html = `
+                <div class="space-y-2">
+                    <p class="text-gray-700">Découvrez votre tableau de bord financier moderne.</p>
+                    <ul class="list-disc pl-5 text-gray-600">
+                        <li>Suivi des dépenses et catégories</li>
+                        <li>Objectifs financiers avec progression</li>
+                        <li>Rappels et dossiers</li>
+                    </ul>
+                </div>
+            `;
+        } else if (step === 1) {
+            html = `
+                <div class="space-y-2">
+                    <p class="text-gray-700">Actions rapides et nouveaux outils.</p>
+                    <ul class="list-disc pl-5 text-gray-600">
+                        <li>Boutons d’ajout rapide</li>
+                        <li>Calculatrice intégrée</li>
+                    </ul>
+                </div>
+            `;
+        } else if (step === 2) {
+            html = `
+                <div class="space-y-2">
+                    <p class="text-gray-700">Objectifs et progression élégante.</p>
+                    <ul class="list-disc pl-5 text-gray-600">
+                        <li>Glissière de progression en temps réel</li>
+                        <li>Animation fluide et sauvegarde automatique</li>
+                    </ul>
+                </div>
+            `;
+        } else if (step === 3) {
+            html = `
+                <div class="space-y-2">
+                    <p class="text-gray-700">Personnalisation et thème.</p>
+                    <ul class="list-disc pl-5 text-gray-600">
+                        <li>Basculer le thème dans la barre de navigation</li>
+                        <li>Préférences persistantes (clair/sombre)</li>
+                    </ul>
+                    <div class="mt-4">
+                        <button class="btn w-full" id="onboardingDoneBtn">Terminer</button>
+                    </div>
+                </div>
+            `;
+        }
+        content.innerHTML = html;
+        const doneBtn = document.getElementById('onboardingDoneBtn');
+        if (doneBtn) doneBtn.addEventListener('click', () => this.completeOnboarding());
+    }
+
+    // Calculator Feature
+    openCalculatorModal() {
+        const modal = document.getElementById('calcModal');
+        if (modal) modal.classList.remove('hidden');
+        this.updateCalculatorDisplay();
+    }
+    closeCalculatorModal() {
+        const modal = document.getElementById('calcModal');
+        if (modal) modal.classList.add('hidden');
+        this.calculator.expr = '';
+        this.calculator.lastResult = 0;
+        this.updateCalculatorDisplay();
+    }
+    updateCalculatorDisplay() {
+        const display = document.getElementById('calcDisplay');
+        if (!display) return;
+        const expr = this.calculator.expr || '0';
+        display.textContent = expr;
+    }
+    copyCalculatorResult() {
+        const result = this.safeEvaluate(this.calculator.expr);
+        if (result == null) {
+            this.showNotification('Invalid expression', 'warning');
+            return;
+        }
+        const text = String(result);
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(() => {
+                this.showNotification('Result copied', 'success');
+            }).catch(() => {
+                this.showNotification('Copy failed', 'error');
+            });
+        }
+    }
+    handleCalculatorKey(key) {
+        if (key === 'C') {
+            this.calculator.expr = '';
+            this.calculator.lastResult = 0;
+            this.updateCalculatorDisplay();
+            return;
+        }
+        if (key === '⌫') {
+            this.calculator.expr = (this.calculator.expr || '').slice(0, -1);
+            this.updateCalculatorDisplay();
+            return;
+        }
+        if (key === '=') {
+            const result = this.safeEvaluate(this.calculator.expr);
+            if (result == null || !isFinite(result)) {
+                this.showNotification('Invalid expression', 'warning');
+                return;
+            }
+            this.calculator.lastResult = result;
+            this.calculator.expr = String(result);
+            this.updateCalculatorDisplay();
+            return;
+        }
+        // Append allowed keys
+        const allowed = /[0-9+\-*/().]/;
+        if (allowed.test(key)) {
+            this.calculator.expr = (this.calculator.expr || '') + key;
+            this.updateCalculatorDisplay();
+        }
+    }
+    safeEvaluate(expr) {
+        if (!expr) return 0;
+        // Only allow digits, operators, parentheses, and dots
+        const sanitized = String(expr).replace(/[^0-9+\-*/().]/g, '');
+        try {
+            // eslint-disable-next-line no-new-func
+            const fn = new Function(`return (${sanitized})`);
+            const val = fn();
+            return typeof val === 'number' ? val : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    // Financial Goals
+    openGoalModal() {
+        const modal = document.getElementById('goalModal');
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    closeGoalModal() {
+        const modal = document.getElementById('goalModal');
+        if (modal) modal.classList.add('hidden');
+        // Reset editing state and form fields
+        this.editingGoalId = null;
+        const titleEl = modal ? modal.querySelector('h2') : null;
+        const submitEl = modal ? modal.querySelector('button[type="submit"]') : null;
+        if (titleEl) titleEl.textContent = '🎯 Add Financial Goal';
+        if (submitEl) submitEl.innerHTML = '<i class="fas fa-save mr-2"></i>Save Goal';
+        const nameEl = document.getElementById('goalName');
+        const targetEl = document.getElementById('goalTarget');
+        const currentEl = document.getElementById('goalCurrent');
+        const deadlineEl = document.getElementById('goalDeadline');
+        if (nameEl) nameEl.value = '';
+        if (targetEl) targetEl.value = '';
+        if (currentEl) currentEl.value = '';
+        if (deadlineEl) deadlineEl.value = '';
+    }
+
+    handleGoalSubmit(event) {
+        event.preventDefault();
+        const nameEl = document.getElementById('goalName');
+        const targetEl = document.getElementById('goalTarget');
+        const currentEl = document.getElementById('goalCurrent');
+        const deadlineEl = document.getElementById('goalDeadline');
+        const name = nameEl ? nameEl.value.trim() : '';
+        const targetAmount = Number(targetEl ? targetEl.value : 0) || 0;
+        const currentAmount = Number(currentEl ? currentEl.value : 0) || 0;
+        const deadline = deadlineEl ? deadlineEl.value : '';
+        if (!name || targetAmount <= 0) {
+            this.showNotification('Please provide a goal name and valid target', 'warning');
+            return;
+        }
+        if (this.editingGoalId) {
+            const idx = this.goals.findIndex(g => g.id === this.editingGoalId);
+            if (idx !== -1) {
+                this.goals[idx] = {
+                    ...this.goals[idx],
+                    name,
+                    targetAmount,
+                    currentAmount,
+                    deadline
+                };
+            }
+        } else {
+            const goal = {
+                id: Date.now().toString(),
+                name,
+                targetAmount,
+                currentAmount,
+                deadline,
+                createdAt: new Date().toISOString()
+            };
+            this.goals.unshift(goal);
+        }
+        this.saveData();
+        this.renderGoals();
+        this.closeGoalModal();
+        this.showNotification(this.editingGoalId ? 'Goal updated' : 'Goal added', 'success');
+        this.editingGoalId = null;
+        // Form is cleared in closeGoalModal
+    }
+
+    renderGoals() {
+        const listEl = document.getElementById('goalsList');
+        const emptyEl = document.getElementById('noGoals');
+        if (!listEl) return;
+        if (!this.goals || this.goals.length === 0) {
+            listEl.innerHTML = '';
+            if (emptyEl) emptyEl.classList.remove('hidden');
+            return;
+        }
+        if (emptyEl) emptyEl.classList.add('hidden');
+        listEl.innerHTML = this.goals.map(goal => {
+            const percent = goal.targetAmount > 0 ? Math.min(100, (goal.currentAmount / goal.targetAmount) * 100) : 0;
+            return `
+                <div class="p-4 bg-gray-50 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <div>
+                            <h3 class="font-medium text-gray-800">${this.escapeHtml(goal.name)}</h3>
+                            <p class="text-sm text-gray-600 goal-text" data-id="${goal.id}">${this.formatCurrency(goal.currentAmount)} of ${this.formatCurrency(goal.targetAmount)}${goal.deadline ? ` • Due ${this.formatDate(goal.deadline)}` : ''}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="btn-outline text-sm editGoalBtn" data-id="${goal.id}">
+                                <i class="fas fa-edit mr-1"></i>Edit
+                            </button>
+                            <button class="btn-outline text-sm deleteGoalBtn" data-id="${goal.id}">
+                                <i class="fas fa-trash mr-1"></i>Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-rose-500 h-2 rounded-full goal-progress" data-id="${goal.id}" style="width: ${percent}%;"></div>
+                    </div>
+                    <div class="mt-1 text-xs text-gray-600">${Math.round(percent)}%</div>
+                    <div class="mt-3">
+                        <input type="range" class="w-full goalProgressSlider" min="0" max="${goal.targetAmount || 0}" step="1" value="${Math.min(goal.currentAmount || 0, goal.targetAmount || 0)}" data-id="${goal.id}" ${goal.targetAmount > 0 ? '' : 'disabled'} />
+                        <div class="text-xs text-gray-500 mt-1">Drag to adjust current amount</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    startEditingGoal(goalId) {
+        const goal = this.goals.find(g => g.id === goalId);
+        if (!goal) return;
+        this.editingGoalId = goalId;
+        const modal = document.getElementById('goalModal');
+        const titleEl = modal ? modal.querySelector('h2') : null;
+        const submitEl = modal ? modal.querySelector('button[type="submit"]') : null;
+        if (titleEl) titleEl.textContent = '🎯 Edit Financial Goal';
+        if (submitEl) submitEl.innerHTML = '<i class="fas fa-save mr-2"></i>Save Changes';
+        const nameEl = document.getElementById('goalName');
+        const targetEl = document.getElementById('goalTarget');
+        const currentEl = document.getElementById('goalCurrent');
+        const deadlineEl = document.getElementById('goalDeadline');
+        if (nameEl) nameEl.value = goal.name;
+        if (targetEl) targetEl.value = goal.targetAmount;
+        if (currentEl) currentEl.value = goal.currentAmount;
+        if (deadlineEl) deadlineEl.value = goal.deadline || '';
+        this.openGoalModal();
+    }
+
+    deleteGoal(id) {
+        this.goals = this.goals.filter(g => g.id !== id);
+        this.saveData();
+        this.renderGoals();
+        this.showNotification('Goal deleted', 'success');
     }
 
     // Side Notes Feature
@@ -926,10 +1422,10 @@ class FinanceTracker {
         // Create notification element
         const notification = document.createElement('div');
         notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-            type === 'success' ? 'bg-green-500 text-white' :
-            type === 'error' ? 'bg-red-500 text-white' :
-            type === 'warning' ? 'bg-yellow-500 text-white' :
-            'bg-blue-500 text-white'
+            type === 'success' ? 'bg-rose-600 text-white' :
+            type === 'error' ? 'bg-pink-700 text-white' :
+            type === 'warning' ? 'bg-pink-500 text-white' :
+            'bg-pink-400 text-white'
         }`;
         notification.textContent = message;
         
@@ -948,6 +1444,8 @@ class FinanceTracker {
         localStorage.setItem('budgets', JSON.stringify(this.budgets));
         localStorage.setItem('reminders', JSON.stringify(this.reminders));
         localStorage.setItem('sideNotes', JSON.stringify(this.sideNotes));
+        localStorage.setItem('goals', JSON.stringify(this.goals));
+        localStorage.setItem('settings', JSON.stringify(this.settings));
     }
 }
 

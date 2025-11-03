@@ -4,14 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💸 Finance & Budget Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
+        :root {
+            --pink-light: #fff5f8;
+            --pink-soft: #ffeaf1;
+            --pink-main: #ec4899; /* Tailwind pink-500 */
+            --pink-deep: #db2777; /* Tailwind pink-600 */
+            /* New glass theme */
+            --bg-start: #fff1f7;
+            --bg-end: #fde7ef;
+            --text-main: #374151; /* gray-700 */
+            --text-subtle: #6b7280; /* gray-500 */
+            --border-soft: #f3c9d9;
+            --accent: #e91e63;
+            --accent-hover: #d81b60;
+            --accent-2: #ff7ea8;
+            --shadow-soft: 0 10px 25px rgba(233, 30, 99, 0.12);
+        }
+        /* Dark theme overrides */
+        .dark-theme {
+            --bg-start: #0f1220;
+            --bg-end: #1b1f36;
+            --text-main: #e5e7eb; /* gray-200 */
+            --text-subtle: #9ca3af; /* gray-400 */
+            --border-soft: #2b2f4a;
+            --accent: #8b5cf6; /* violet-500 */
+            --accent-hover: #7c3aed; /* violet-600 */
+            --accent-2: #a78bfa; /* violet-300 */
+            --shadow-soft: 0 10px 25px rgba(139, 92, 246, 0.18);
+        }
+
         .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ff85a2 0%, #ff5ea0 100%);
+        }
+        /* Animated soft gradient background */
+        .theme-bg {
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            background-size: 200% 200%;
+            animation: bgShift 18s ease infinite;
+        }
+        @keyframes bgShift {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
         }
         .card-hover {
             transition: all 0.3s ease;
@@ -20,6 +61,97 @@
             transform: translateY(-5px);
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
+        /* Modern buttons and icons */
+        .btn {
+            border-radius: 9999px;
+            padding: 0.75rem 1rem;
+            background: var(--accent);
+            color: #ffffff;
+            box-shadow: var(--shadow-soft);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease, background 0.18s ease;
+            font-weight: 600;
+        }
+        .btn:hover { transform: translateY(-1px); opacity: 0.97; background: var(--accent-hover); }
+        .btn-outline {
+            border-radius: 9999px;
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            background: transparent;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, color 0.18s ease, background 0.18s ease;
+            font-weight: 600;
+        }
+        .btn-outline:hover { transform: translateY(-1px); background: rgba(233,30,99,0.06); }
+        .icon-btn {
+            width: 64px; height: 64px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 9999px;
+            background: rgba(233, 30, 99, 0.10);
+            color: var(--accent);
+            box-shadow: var(--shadow-soft);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+        .icon-btn:hover { transform: translateY(-1px); background: rgba(233, 30, 99, 0.15); }
+        .icon-btn-sm { width: 48px; height: 48px; }
+        /* Glass theme utilities */
+        .theme-bg {
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+        }
+        .glass-nav {
+            backdrop-filter: saturate(150%) blur(12px);
+            background: rgba(255, 255, 255, 0.75);
+            border-bottom: 1px solid var(--border-soft);
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+        .glass-card {
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid var(--border-soft);
+            box-shadow: var(--shadow-soft);
+        }
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--accent-2), var(--accent));
+            opacity: 0.75;
+        }
+        .dark-theme .glass-card {
+            background: rgba(24, 26, 46, 0.75);
+            border: 1px solid var(--border-soft);
+        }
+        .pill-btn {
+            border-radius: 9999px;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(90deg, var(--accent-2), var(--accent));
+            color: #ffffff;
+            box-shadow: var(--shadow-soft);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        }
+        .pill-btn:hover { transform: translateY(-1px); opacity: 0.95; }
+        .input-modern {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border: 1px solid #eec1d4;
+            border-radius: 12px;
+            background: #ffffff;
+        }
+        .input-modern:focus { outline: none; box-shadow: 0 0 0 3px rgba(233,30,99,0.15); border-color: var(--accent); }
+        .soft-badge { background: #fde7ef; color: #a5164d; border-radius: 9999px; padding: 0.25rem 0.6rem; font-size: .75rem; }
+        .link-soft { color: var(--accent); }
+        .link-soft:hover { color: #a5164d; }
+        .card {
+            background: linear-gradient(180deg, rgba(255,255,255,0.96), var(--pink-light));
+            border: 1px solid #ffd6e7;
+        }
+        /* Micro-interactions */
+        .btn, .btn-outline, .icon-btn { will-change: transform, box-shadow; }
+        .btn:hover, .btn-outline:hover, .icon-btn:hover { box-shadow: 0 10px 30px rgba(233, 30, 99, 0.18); }
+        .dark-theme .btn:hover, .dark-theme .btn-outline:hover, .dark-theme .icon-btn:hover { box-shadow: 0 10px 30px rgba(139, 92, 246, 0.25); }
+        .icon-btn:hover i { animation: iconPop 300ms ease; }
+        @keyframes iconPop { 0% { transform: scale(1); } 40% { transform: scale(1.15); } 100% { transform: scale(1); } }
         .receipt-preview {
             max-width: 200px;
             max-height: 200px;
@@ -28,18 +160,35 @@
         .folder-item {
             cursor: move;
         }
-        .category-food { border-left: 4px solid #f59e0b; }
-        .category-transport { border-left: 4px solid #3b82f6; }
+        /* Smooth progress animation */
+        .goal-progress { transition: width 0.3s ease; }
+        .goalProgressSlider { accent-color: var(--accent); }
+        .dark-theme .glass-nav { background: rgba(24, 26, 46, 0.6); border-bottom-color: var(--border-soft); }
+        .dark-theme .icon-btn { background: rgba(139, 92, 246, 0.12); color: var(--accent); }
+        .dark-theme .btn-outline { border-color: var(--accent); color: var(--accent); }
+        .dark-theme .btn { background: var(--accent); }
+        /* Modal backdrop blur for elegance */
+        #goalModal, #calcModal, #reminderModal, #expenseModal, #incomeModal, #scannerModal, #profileModal {
+            backdrop-filter: blur(6px) saturate(120%);
+        }
+        /* Selection aesthetics */
+        ::selection { background: var(--accent-2); color: white; }
+        /* Elegant Pink category accents */
+        .category-food { border-left: 4px solid #f9a8d4; }
+        .category-transport { border-left: 4px solid #f472b6; }
         .category-shopping { border-left: 4px solid #ec4899; }
-        .category-utilities { border-left: 4px solid #10b981; }
-        .category-entertainment { border-left: 4px solid #8b5cf6; }
-        .category-healthcare { border-left: 4px solid #ef4444; }
-        .category-other { border-left: 4px solid #6b7280; }
+        .category-utilities { border-left: 4px solid #fb7185; }
+        .category-entertainment { border-left: 4px solid #f43f5e; }
+        .category-healthcare { border-left: 4px solid #be185d; }
+        .category-other { border-left: 4px solid #e5a3c9; }
+        /* Typography */
+        body { font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: var(--text-main); }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="theme-bg min-h-screen">
     <!-- Navigation -->
-    <nav class="gradient-bg text-white shadow-lg">
+    <nav class="glass-nav text-gray-800 shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
@@ -47,9 +196,13 @@
                     <h1 class="text-xl font-bold">Finance Tracker</h1>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <button id="profileBtn" class="flex items-center space-x-2 hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-lg transition">
+                    <button id="profileBtn" class="flex items-center space-x-2 px-3 py-2 rounded-lg transition border border-pink-200 hover:bg-white hover:bg-opacity-70">
                         <i class="fas fa-user-circle text-xl"></i>
                         <span>Profile</span>
+                    </button>
+                    <button id="themeToggleBtn" class="flex items-center space-x-2 px-3 py-2 rounded-lg transition border border-pink-200 hover:bg-white hover:bg-opacity-70">
+                        <i class="fas fa-moon text-xl"></i>
+                        <span>Theme</span>
                     </button>
                 </div>
             </div>
@@ -60,78 +213,89 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Dashboard Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+            <div class="glass-card rounded-xl shadow-md p-6 card-hover card">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Total Income</p>
-                        <p id="totalIncome" class="text-2xl font-bold text-green-600">$0.00</p>
+                        <p id="totalIncome" class="text-2xl font-bold text-rose-600">$0.00</p>
                     </div>
-                    <div class="bg-green-100 p-3 rounded-full">
-                        <i class="fas fa-arrow-up text-green-600 text-xl"></i>
+                    <div class="bg-pink-100 p-3 rounded-full">
+                        <i class="fas fa-arrow-up text-rose-600 text-xl"></i>
                     </div>
                 </div>
             </div>
             
-            <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+            <div class="glass-card rounded-xl shadow-md p-6 card-hover card">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Total Expenses</p>
-                        <p id="totalExpenses" class="text-2xl font-bold text-red-600">$0.00</p>
+                        <p id="totalExpenses" class="text-2xl font-bold text-pink-700">$0.00</p>
                     </div>
-                    <div class="bg-red-100 p-3 rounded-full">
-                        <i class="fas fa-arrow-down text-red-600 text-xl"></i>
+                    <div class="bg-pink-100 p-3 rounded-full">
+                        <i class="fas fa-arrow-down text-pink-700 text-xl"></i>
                     </div>
                 </div>
             </div>
             
-            <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+            <div class="glass-card rounded-xl shadow-md p-6 card-hover card">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Net Savings</p>
-                        <p id="netSavings" class="text-2xl font-bold text-blue-600">$0.00</p>
+                        <p id="netSavings" class="text-2xl font-bold text-rose-600">$0.00</p>
                     </div>
-                    <div class="bg-blue-100 p-3 rounded-full">
-                        <i class="fas fa-piggy-bank text-blue-600 text-xl"></i>
+                    <div class="bg-pink-100 p-3 rounded-full">
+                        <i class="fas fa-piggy-bank text-rose-600 text-xl"></i>
                     </div>
                 </div>
             </div>
             
-            <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+            <div class="glass-card rounded-xl shadow-md p-6 card-hover card">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Receipts Scanned</p>
-                        <p id="receiptsCount" class="text-2xl font-bold text-purple-600">0</p>
+                        <p id="receiptsCount" class="text-2xl font-bold text-rose-600">0</p>
                     </div>
-                    <div class="bg-purple-100 p-3 rounded-full">
-                        <i class="fas fa-receipt text-purple-600 text-xl"></i>
+                    <div class="bg-pink-100 p-3 rounded-full">
+                        <i class="fas fa-receipt text-rose-600 text-xl"></i>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Quick Actions -->
-        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+        <div class="glass-card rounded-xl shadow-md p-6 mb-8">
             <h2 class="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <button id="scanReceiptBtn" class="flex flex-col items-center p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition card-hover">
-                    <i class="fas fa-camera text-2xl mb-2"></i>
-                    <span class="text-sm font-medium">Scan Receipt</span>
-                </button>
-                
-                <button id="addExpenseBtn" class="flex flex-col items-center p-4 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-lg hover:from-red-600 hover:to-pink-700 transition card-hover">
-                    <i class="fas fa-minus-circle text-2xl mb-2"></i>
-                    <span class="text-sm font-medium">Add Expense</span>
-                </button>
-                
-                <button id="addIncomeBtn" class="flex flex-col items-center p-4 bg-gradient-to-r from-green-500 to-teal-600 text-white rounded-lg hover:from-green-600 hover:to-teal-700 transition card-hover">
-                    <i class="fas fa-plus-circle text-2xl mb-2"></i>
-                    <span class="text-sm font-medium">Add Income</span>
-                </button>
-                
-                <button id="manageFoldersBtn" class="flex flex-col items-center p-4 bg-gradient-to-r from-yellow-500 to-orange-600 text-white rounded-lg hover:from-yellow-600 hover:to-orange-700 transition card-hover">
-                    <i class="fas fa-folder text-2xl mb-2"></i>
-                    <span class="text-sm font-medium">Manage Folders</span>
-                </button>
+                <div class="flex flex-col items-center gap-2 p-4">
+                    <button id="scanReceiptBtn" class="icon-btn" title="Scan Receipt">
+                        <i class="fas fa-camera text-xl"></i>
+                    </button>
+                    <span class="text-sm font-medium text-gray-700">Scan Receipt</span>
+                </div>
+                <div class="flex flex-col items-center gap-2 p-4">
+                    <button id="addExpenseBtn" class="icon-btn" title="Add Expense">
+                        <i class="fas fa-minus-circle text-xl"></i>
+                    </button>
+                    <span class="text-sm font-medium text-gray-700">Add Expense</span>
+                </div>
+                <div class="flex flex-col items-center gap-2 p-4">
+                    <button id="addIncomeBtn" class="icon-btn" title="Add Income">
+                        <i class="fas fa-plus-circle text-xl"></i>
+                    </button>
+                    <span class="text-sm font-medium text-gray-700">Add Income</span>
+                </div>
+                <div class="flex flex-col items-center gap-2 p-4">
+                    <button id="manageFoldersBtn" class="icon-btn" title="Manage Folders">
+                        <i class="fas fa-folder text-xl"></i>
+                    </button>
+                    <span class="text-sm font-medium text-gray-700">Manage Folders</span>
+                </div>
+                <div class="flex flex-col items-center gap-2 p-4">
+                    <button id="calcBtn" class="icon-btn" title="Calculator">
+                        <i class="fas fa-calculator text-xl"></i>
+                    </button>
+                    <span class="text-sm font-medium text-gray-700">Calculator</span>
+                </div>
             </div>
         </div>
 
@@ -140,10 +304,10 @@
             <!-- Left Column: Recent Transactions & Folders -->
             <div class="lg:col-span-2 space-y-8">
                 <!-- Recent Transactions -->
-                <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="glass-card rounded-xl shadow-md p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-xl font-bold text-gray-800">Recent Transactions</h2>
-                        <button id="viewAllBtn" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View All</button>
+                        <button id="viewAllBtn" class="btn-outline text-sm">View All</button>
                     </div>
                     <div id="transactionsList" class="space-y-3">
                         <!-- Transactions will be populated here -->
@@ -155,19 +319,19 @@
                 </div>
 
                 <!-- Folder Management -->
-                <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="glass-card rounded-xl shadow-md p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-xl font-bold text-gray-800">📁 Folders</h2>
-                        <button id="createFolderBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm">
+                        <button id="createFolderBtn" class="btn text-sm px-4 py-2">
                             <i class="fas fa-plus mr-2"></i>New Folder
                         </button>
                     </div>
                     <div id="foldersList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Default folders -->
-                        <div class="folder-item bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 transition cursor-pointer">
+                        <div class="folder-item bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300 hover:border-pink-400 transition cursor-pointer">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
-                                    <i class="fas fa-folder text-yellow-500 text-xl mr-3"></i>
+                                    <i class="fas fa-folder text-pink-500 text-xl mr-3"></i>
                                     <div>
                                         <h3 class="font-medium text-gray-800">2025 Taxes</h3>
                                         <p class="text-sm text-gray-600">0 receipts • $0.00</p>
@@ -177,10 +341,10 @@
                             </div>
                         </div>
                         
-                        <div class="folder-item bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 transition cursor-pointer">
+                        <div class="folder-item bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300 hover:border-pink-400 transition cursor-pointer">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
-                                    <i class="fas fa-folder text-blue-500 text-xl mr-3"></i>
+                                    <i class="fas fa-folder text-rose-500 text-xl mr-3"></i>
                                     <div>
                                         <h3 class="font-medium text-gray-800">Business Expenses</h3>
                                         <p class="text-sm text-gray-600">0 receipts • $0.00</p>
@@ -204,27 +368,43 @@
                 </div>
 
                 <!-- Budget Progress -->
-                <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="glass-card rounded-xl shadow-md p-6">
                     <h2 class="text-xl font-bold text-gray-800 mb-4">Budget Progress</h2>
                     <div id="budgetProgress" class="space-y-4">
                         <!-- Budget items will be populated here -->
                         <div class="text-center text-gray-500 py-4">
-                            <i class="fas fa-chart-pie text-3xl mb-2 opacity-50"></i>
+                            <i class="fas fa-chart-pie text-pink-400 text-3xl mb-2 opacity-70"></i>
                             <p class="text-sm">Set up budgets to track your spending</p>
                         </div>
                     </div>
                 </div>
 
+                <!-- Financial Goals -->
+                <div class="glass-card rounded-xl shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">🎯 Financial Goals</h2>
+                        <button id="addGoalBtn" class="btn text-sm">
+                            <i class="fas fa-plus mr-2"></i>Add Goal
+                        </button>
+                    </div>
+                    <div id="goalsList" class="space-y-3">
+                        <div class="text-center text-gray-500 py-4" id="noGoals">
+                            <i class="fas fa-bullseye text-pink-400 text-3xl mb-2 opacity-70"></i>
+                            <p class="text-sm">No goals yet. Create one to start tracking.</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Upcoming Reminders -->
-                <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="glass-card rounded-xl shadow-md p-6">
                     <h2 class="text-xl font-bold text-gray-800 mb-4">📅 Reminders</h2>
                     <div id="remindersList" class="space-y-3">
                         <div class="text-center text-gray-500 py-4" id="noReminders">
-                            <i class="fas fa-bell text-3xl mb-2 opacity-50"></i>
+                            <i class="fas fa-bell text-pink-400 text-3xl mb-2 opacity-70"></i>
                             <p class="text-sm">No upcoming reminders</p>
                         </div>
                     </div>
-                    <button id="addReminderBtn" class="w-full mt-4 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition text-sm">
+                    <button id="addReminderBtn" class="w-full mt-4 btn text-sm">
                         <i class="fas fa-plus mr-2"></i>Add Reminder
                     </button>
                 </div>
@@ -232,7 +412,168 @@
         </div>
     </div>
 
+    <!-- Add Goal Modal -->
+    <div id="goalModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl max-w-md w-full">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">🎯 Add Financial Goal</h2>
+                        <button id="closeGoalBtn" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <form id="goalForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Goal Name</label>
+                            <input type="text" id="goalName" class="input-modern" placeholder="e.g., Emergency Fund" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Target Amount</label>
+                            <input type="number" id="goalTarget" step="0.01" min="0" class="input-modern" placeholder="e.g., 5000" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Current Amount (optional)</label>
+                            <input type="number" id="goalCurrent" step="0.01" min="0" class="input-modern" placeholder="e.g., 1200">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Deadline (optional)</label>
+                            <input type="date" id="goalDeadline" class="input-modern">
+                        </div>
+                        <div class="flex space-x-3">
+                            <button type="submit" class="flex-1 btn py-2 px-4">
+                                <i class="fas fa-save mr-2"></i>Save Goal
+                            </button>
+                            <button type="button" id="cancelGoalBtn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calculator Modal -->
+    <div id="calcModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl max-w-sm w-full glass-card">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">🧮 Calculator</h2>
+                        <button id="closeCalcBtn" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="mb-4">
+                        <div id="calcDisplay" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-right font-mono text-lg">
+                            0
+                        </div>
+                    </div>
+                    <div id="calcKeys" class="grid grid-cols-4 gap-2">
+                        <button class="btn-outline" data-key="C">C</button>
+                        <button class="btn-outline" data-key="⌫">⌫</button>
+                        <button class="btn-outline" data-key="(">(</button>
+                        <button class="btn-outline" data-key=")">)</button>
+
+                        <button class="btn-outline" data-key="7">7</button>
+                        <button class="btn-outline" data-key="8">8</button>
+                        <button class="btn-outline" data-key="9">9</button>
+                        <button class="btn-outline" data-key="/">÷</button>
+
+                        <button class="btn-outline" data-key="4">4</button>
+                        <button class="btn-outline" data-key="5">5</button>
+                        <button class="btn-outline" data-key="6">6</button>
+                        <button class="btn-outline" data-key="*">×</button>
+
+                        <button class="btn-outline" data-key="1">1</button>
+                        <button class="btn-outline" data-key="2">2</button>
+                        <button class="btn-outline" data-key="3">3</button>
+                        <button class="btn-outline" data-key="-">−</button>
+
+                        <button class="btn-outline" data-key="0">0</button>
+                        <button class="btn-outline" data-key=".">.</button>
+                        <button class="btn" data-key="=">=</button>
+                        <button class="btn-outline" data-key="+">+</button>
+                    </div>
+                    <div class="mt-4 flex justify-end gap-2">
+                        <button id="cancelCalcBtn" class="btn-outline">
+                            Cancel
+                        </button>
+                        <button id="copyCalcBtn" class="btn">
+                            <i class="fas fa-copy mr-2"></i>Copy Result
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onboarding Modal -->
+    <div id="onboardingModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl max-w-lg w-full glass-card">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">👋 Bienvenue !</h2>
+                        <button id="closeOnboardingBtn" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="onboardingContent" class="space-y-4">
+                        <!-- Étapes injectées par JS -->
+                    </div>
+                    <div class="flex items-center justify-between mt-6">
+                        <div class="text-sm text-gray-500" id="onboardingStepIndicator">Étape 1 / 4</div>
+                        <div class="flex gap-2">
+                            <button id="onboardingPrevBtn" class="btn-outline">Précédent</button>
+                            <button id="onboardingNextBtn" class="btn">Suivant</button>
+                            <button id="onboardingSkipBtn" class="btn-outline">Ignorer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Modals -->
+    <!-- Profile & Settings Modal -->
+    <div id="profileModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl max-w-md w-full">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">👤 Profile & Settings</h2>
+                        <button id="closeProfileBtn" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <form id="profileForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                            <input type="text" id="profileName" class="input-modern" placeholder="Your name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                            <select id="profileCurrency" class="input-modern">
+                                <option value="USD">USD ( $ )</option>
+                                <option value="EUR">EUR ( € )</option>
+                                <option value="GBP">GBP ( £ )</option>
+                                <option value="JPY">JPY ( ¥ )</option>
+                            </select>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button type="submit" class="flex-1 btn">
+                                <i class="fas fa-save mr-2"></i>Save Settings
+                            </button>
+                            <button type="button" id="cancelProfileBtn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Receipt Scanner Modal -->
     <div id="scannerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
         <div class="flex items-center justify-center min-h-screen p-4">
@@ -248,13 +589,13 @@
                     <div class="space-y-4">
                         <!-- Upload Options -->
                         <div class="grid grid-cols-2 gap-4">
-                            <label for="fileInput" class="flex flex-col items-center p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 transition">
+                            <label for="fileInput" class="flex flex-col items-center p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-pink-400 transition">
                                 <i class="fas fa-upload text-3xl text-gray-400 mb-2"></i>
                                 <span class="text-sm font-medium text-gray-600">Upload Image</span>
                                 <input type="file" id="fileInput" accept="image/*" class="hidden">
                             </label>
                             
-                            <button id="cameraBtn" class="flex flex-col items-center p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 transition">
+                            <button id="cameraBtn" class="flex flex-col items-center p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-pink-400 transition">
                                 <i class="fas fa-camera text-3xl text-gray-400 mb-2"></i>
                                 <span class="text-sm font-medium text-gray-600">Use Camera</span>
                             </button>
@@ -267,26 +608,26 @@
                                 <canvas id="cameraCanvas" class="hidden"></canvas>
                             </div>
                             <div class="mt-4 flex space-x-3">
-                                <button id="captureBtn" class="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition">
+                                <button id="captureBtn" class="flex-1 bg-rose-600 text-white py-2 px-4 rounded-lg hover:bg-rose-700 transition">
                                     <i class="fas fa-circle-notch mr-2"></i>Capture Photo
                                 </button>
                                 <button id="stopCameraBtn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
                                     Stop Camera
                                 </button>
                             </div>
-                            <p id="cameraError" class="hidden mt-2 text-sm text-red-600"></p>
+                            <p id="cameraError" class="hidden mt-2 text-sm text-pink-700"></p>
                         </div>
                         
                         <!-- Preview Area -->
                         <div id="previewArea" class="hidden">
                             <img id="receiptPreview" class="w-full max-h-64 object-contain rounded-lg border">
-                            <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+                            <div class="mt-4 p-4 bg-pink-50 rounded-lg">
                                 <div class="flex items-center mb-2">
-                                    <i class="fas fa-robot text-blue-600 mr-2"></i>
-                                    <span class="font-medium text-blue-800">AI Processing...</span>
+                                    <i class="fas fa-robot text-rose-600 mr-2"></i>
+                                    <span class="font-medium text-rose-800">AI Processing...</span>
                                 </div>
-                                <div id="ocrProgress" class="w-full bg-blue-200 rounded-full h-2">
-                                    <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                <div id="ocrProgress" class="w-full bg-pink-200 rounded-full h-2">
+                                    <div class="bg-rose-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
                                 </div>
                             </div>
                         </div>
@@ -297,19 +638,19 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Merchant</label>
-                                    <input type="text" id="merchantName" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <input type="text" id="merchantName" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                                    <input type="number" id="receiptAmount" step="0.01" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <input type="number" id="receiptAmount" step="0.01" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                                    <input type="date" id="receiptDate" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <input type="date" id="receiptDate" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                                    <select id="receiptCategory" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <select id="receiptCategory" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent">
                                         <option value="food">🍔 Food & Dining</option>
                                         <option value="transport">🚗 Transportation</option>
                                         <option value="shopping">🛍️ Shopping</option>
@@ -322,18 +663,18 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                                <textarea id="receiptNotes" rows="2" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Add any notes..."></textarea>
+                                <textarea id="receiptNotes" rows="2" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent" placeholder="Add any notes..."></textarea>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Assign to Folder</label>
-                                <select id="receiptFolder" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <select id="receiptFolder" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent">
                                     <option value="">No folder</option>
                                     <option value="taxes">2025 Taxes</option>
                                     <option value="business">Business Expenses</option>
                                 </select>
                             </div>
                             <div class="flex space-x-3">
-                                <button id="saveReceiptBtn" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">
+                                <button id="saveReceiptBtn" class="flex-1 btn py-2 px-4">
                                     <i class="fas fa-save mr-2"></i>Save Receipt
                                 </button>
                                 <button id="cancelReceiptBtn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
@@ -362,15 +703,15 @@
                     <form id="expenseForm" class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                            <input type="text" id="expenseDescription" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Grocery shopping">
+                            <input type="text" id="expenseDescription" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent" placeholder="e.g., Grocery shopping">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                            <input type="number" id="expenseAmount" step="0.01" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0.00">
+                            <input type="number" id="expenseAmount" step="0.01" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent" placeholder="0.00">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                            <select id="expenseCategory" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <select id="expenseCategory" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent">
                                 <option value="">Select category</option>
                                 <option value="food">🍔 Food & Dining</option>
                                 <option value="transport">🚗 Transportation</option>
@@ -383,14 +724,14 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                            <input type="date" id="expenseDate" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <input type="date" id="expenseDate" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                            <textarea id="expenseNotes" rows="2" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Optional notes..."></textarea>
+                            <textarea id="expenseNotes" rows="2" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent" placeholder="Optional notes..."></textarea>
                         </div>
                         <div class="flex space-x-3">
-                            <button type="submit" class="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition">
+                            <button type="submit" class="flex-1 btn py-2 px-4">
                                 <i class="fas fa-plus mr-2"></i>Add Expense
                             </button>
                             <button type="button" id="cancelExpenseBtn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
@@ -418,24 +759,24 @@
                     <form id="reminderForm" class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                            <input type="text" id="reminderTitle" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Pay electricity bill">
+                            <input type="text" id="reminderTitle" required class="input-modern" placeholder="e.g., Pay electricity bill">
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                                <input type="date" id="reminderDate" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <input type="date" id="reminderDate" required class="input-modern">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
-                                <input type="time" id="reminderTime" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <input type="time" id="reminderTime" required class="input-modern">
                             </div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                            <textarea id="reminderNotes" rows="2" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Optional notes..."></textarea>
+                            <textarea id="reminderNotes" rows="2" class="input-modern" placeholder="Optional notes..."></textarea>
                         </div>
                         <div class="flex space-x-3">
-                            <button type="submit" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">
+                            <button type="submit" class="flex-1 btn">
                                 <i class="fas fa-save mr-2"></i>Save Reminder
                             </button>
                             <button type="button" id="cancelReminderBtn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
@@ -451,7 +792,7 @@
     <script src="js/app.js"></script>
     
     <!-- Floating Notes Button -->
-    <button id="openNotesPanelBtn" class="fixed bottom-6 right-6 bg-yellow-500 text-white shadow-lg rounded-full w-12 h-12 flex items-center justify-center hover:bg-yellow-600 transition z-40" title="Open Notes">
+    <button id="openNotesPanelBtn" class="fixed bottom-6 right-6 icon-btn icon-btn-sm shadow-lg rounded-full flex items-center justify-center transition z-40" title="Open Notes">
         <i class="fas fa-sticky-note"></i>
     </button>
 
@@ -466,10 +807,10 @@
             </div>
             <div class="p-4 space-y-4 overflow-y-auto flex-1">
                 <form id="sideNoteForm" class="space-y-3">
-                    <input type="text" id="sideNoteTitle" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Note title (optional)">
-                    <textarea id="sideNoteContent" rows="4" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Write your note..."></textarea>
+                    <input type="text" id="sideNoteTitle" class="input-modern" placeholder="Note title (optional)">
+                    <textarea id="sideNoteContent" rows="4" class="input-modern" placeholder="Write your note..."></textarea>
                     <div class="flex space-x-2">
-                        <button type="submit" class="flex-1 bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition">
+                        <button type="submit" class="flex-1 pill-btn">
                             <i class="fas fa-save mr-2"></i>Save Note
                         </button>
                         <button type="button" id="clearSideNoteBtn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">Clear</button>
@@ -479,7 +820,7 @@
                     <h3 class="text-sm font-semibold text-gray-700 mb-2">Your Notes</h3>
                     <div id="sideNotesList" class="space-y-3">
                         <div id="noSideNotes" class="text-center text-gray-500 py-4">
-                            <i class="fas fa-sticky-note text-3xl mb-2 opacity-50"></i>
+                            <i class="fas fa-sticky-note text-pink-400 text-3xl mb-2 opacity-70"></i>
                             <p class="text-sm">No notes yet. Add your first note!</p>
                         </div>
                     </div>
