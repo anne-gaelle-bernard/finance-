@@ -179,6 +179,17 @@ class FinanceTracker {
             });
         }
 
+        // Push Notification Quick Action
+        const notifyBtn = document.getElementById('notifyBtn');
+        if (notifyBtn) {
+            notifyBtn.addEventListener('click', async () => {
+                await this.pushNotification('Hello from Finance Tracker!', {
+                    body: 'Your dashboard is ready. Stay on top of your finances.',
+                    icon: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f4b0.png'
+                });
+            });
+        }
+
         // Theme Toggle
         const themeToggleBtn = document.getElementById('themeToggleBtn');
         if (themeToggleBtn) {
@@ -756,6 +767,11 @@ class FinanceTracker {
     }
 
     triggerReminder(rem) {
+        // Attempt desktop notification, fallback to in-app toast
+        this.pushNotification(`Reminder: ${rem.title}`, {
+            body: `${rem.date} • ${rem.time}${rem.notes ? ' • ' + rem.notes : ''}`,
+            icon: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f514.png'
+        });
         this.showNotification(`Reminder: ${rem.title}`, 'info');
         rem.notified = true;
         this.saveData();
@@ -1493,3 +1509,33 @@ function addDemoData() {
 
 // Expose demo function globally for testing
 window.addDemoData = addDemoData;
+    async requestNotificationPermission() {
+        if (!('Notification' in window)) return 'unsupported';
+        try {
+            if (Notification.permission === 'granted' || Notification.permission === 'denied') {
+                return Notification.permission;
+            }
+            const perm = await Notification.requestPermission();
+            return perm;
+        } catch (e) {
+            return 'denied';
+        }
+    }
+
+    async pushNotification(title, options = {}) {
+        if (!('Notification' in window)) {
+            this.showNotification(title, 'info');
+            return;
+        }
+        const permission = await this.requestNotificationPermission();
+        if (permission === 'granted') {
+            try {
+                const n = new Notification(title, options);
+                setTimeout(() => n.close && n.close(), 5000);
+            } catch (e) {
+                this.showNotification(title, 'info');
+            }
+        } else {
+            this.showNotification(title, 'info');
+        }
+    }
