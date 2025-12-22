@@ -184,6 +184,30 @@
         /* Typography */
         body { font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: var(--text-main); }
         h1, h2, h3 { font-family: 'Playfair Display', serif; }
+        
+        /* Responsive Improvements */
+        @media (max-width: 768px) {
+            .glass-nav .flex { flex-direction: column; gap: 0.5rem; }
+            .icon-btn { width: 56px; height: 56px; }
+            .icon-btn i { font-size: 1.25rem; }
+            #notesPanel { max-width: 100%; }
+            .modal-content { margin: 1rem; }
+            .glass-card { padding: 1rem !important; }
+        }
+        @media (max-width: 640px) {
+            .icon-btn { width: 48px; height: 48px; }
+            h1 { font-size: 1.25rem; }
+            h2 { font-size: 1.125rem; }
+            .px-4 { padding-left: 0.75rem; padding-right: 0.75rem; }
+            .py-8 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+        }
+        @media (max-width: 480px) {
+            .glass-nav { padding: 0.5rem 1rem; }
+            .icon-btn { width: 44px; height: 44px; font-size: 0.875rem; }
+            .text-2xl { font-size: 1.25rem; }
+            .text-xl { font-size: 1.125rem; }
+        }
+        /* All features visible after login */
     </style>
 </head>
 <body class="theme-bg min-h-screen">
@@ -195,14 +219,22 @@
                     <i class="fas fa-wallet text-2xl mr-3"></i>
                     <h1 class="text-xl font-bold">Finance Tracker</h1>
                 </div>
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 md:space-x-4 flex-wrap">
+                    <div class="flex items-center space-x-2 px-3 py-2">
+                        <i class="fas fa-user-circle text-lg md:text-xl text-pink-600"></i>
+                        <span id="userNameDisplay" class="hidden sm:inline font-medium text-gray-700">Utilisateur</span>
+                    </div>
                     <button id="profileBtn" class="flex items-center space-x-2 px-3 py-2 rounded-lg transition border border-pink-200 hover:bg-white hover:bg-opacity-70">
-                        <i class="fas fa-user-circle text-xl"></i>
-                        <span>Profile</span>
+                        <i class="fas fa-cog text-lg md:text-xl"></i>
+                        <span class="hidden sm:inline">Profil</span>
                     </button>
                     <button id="themeToggleBtn" class="flex items-center space-x-2 px-3 py-2 rounded-lg transition border border-pink-200 hover:bg-white hover:bg-opacity-70">
-                        <i class="fas fa-moon text-xl"></i>
-                        <span>Theme</span>
+                        <i class="fas fa-moon text-lg md:text-xl"></i>
+                        <span class="hidden sm:inline">Thème</span>
+                    </button>
+                    <button id="logoutBtn" class="flex items-center space-x-2 px-3 py-2 rounded-lg transition bg-pink-100 border border-pink-300 hover:bg-pink-200">
+                        <i class="fas fa-sign-out-alt text-lg md:text-xl text-pink-700"></i>
+                        <span class="hidden sm:inline text-pink-700 font-medium">Déconnexion</span>
                     </button>
                 </div>
             </div>
@@ -210,9 +242,9 @@
     </nav>
 
     <!-- Main Container -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="content-wrapper max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Dashboard Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
             <div class="glass-card rounded-xl shadow-md p-6 card-hover card">
                 <div class="flex items-center justify-between">
                     <div>
@@ -263,9 +295,9 @@
         </div>
 
         <!-- Quick Actions -->
-        <div class="glass-card rounded-xl shadow-md p-6 mb-8">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="glass-card rounded-xl shadow-md p-4 md:p-6 mb-8">
+            <h2 class="text-lg md:text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
                 <div class="flex flex-col items-center gap-2 p-4">
                     <button id="scanReceiptBtn" class="icon-btn" title="Scan Receipt">
                         <i class="fas fa-camera text-xl"></i>
@@ -306,7 +338,7 @@
         </div>
 
         <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
             <!-- Left Column: Recent Transactions & Folders -->
             <div class="lg:col-span-2 space-y-8">
                 <!-- Recent Transactions -->
@@ -795,6 +827,169 @@
         </div>
     </div>
 
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl max-w-md w-full">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">🔐 Connexion</h2>
+                        <button id="closeLoginBtn" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    
+                    <form id="loginForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input type="email" id="loginEmail" required class="input-modern" placeholder="votre@email.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+                            <input type="password" id="loginPassword" required class="input-modern" placeholder="••••••••">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="rememberMe" class="mr-2">
+                                <span class="text-sm text-gray-600">Se souvenir de moi</span>
+                            </label>
+                            <a href="#" class="text-sm link-soft">Mot de passe oublié?</a>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button type="submit" class="flex-1 btn py-2 px-4">
+                                <i class="fas fa-sign-in-alt mr-2"></i>Se connecter
+                            </button>
+                            <button type="button" id="cancelLoginBtn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                Annuler
+                            </button>
+                        </div>
+                        <div class="text-center text-sm text-gray-600">
+                            Pas encore de compte? <a href="#" id="switchToRegister" class="link-soft font-semibold">S'inscrire</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl max-w-md w-full">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">📝 Inscription</h2>
+                        <button id="closeRegisterBtn" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    
+                    <form id="registerForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nom complet</label>
+                            <input type="text" id="registerName" required class="input-modern" placeholder="Jean Dupont">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input type="email" id="registerEmail" required class="input-modern" placeholder="votre@email.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+                            <input type="password" id="registerPassword" required class="input-modern" placeholder="••••••••" minlength="6">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Confirmer mot de passe</label>
+                            <input type="password" id="registerConfirmPassword" required class="input-modern" placeholder="••••••••" minlength="6">
+                        </div>
+                        <div class="flex items-start">
+                            <input type="checkbox" id="agreeTerms" required class="mt-1 mr-2">
+                            <label for="agreeTerms" class="text-sm text-gray-600">
+                                J'accepte les <a href="#" class="link-soft">conditions d'utilisation</a> et la <a href="#" class="link-soft">politique de confidentialité</a>
+                            </label>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button type="submit" class="flex-1 btn py-2 px-4">
+                                <i class="fas fa-user-plus mr-2"></i>S'inscrire
+                            </button>
+                            <button type="button" id="cancelRegisterBtn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                Annuler
+                            </button>
+                        </div>
+                        <div class="text-center text-sm text-gray-600">
+                            Déjà un compte? <a href="#" id="switchToLogin" class="link-soft font-semibold">Se connecter</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Income Modal -->
+    <div id="incomeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl max-w-md w-full">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">➕ Add Income</h2>
+                        <button id="closeIncomeBtn" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    
+                    <form id="incomeForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <input type="text" id="incomeDescription" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent" placeholder="e.g., Salary, Freelance work">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                            <input type="number" id="incomeAmount" step="0.01" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent" placeholder="0.00">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                            <input type="date" id="incomeDate" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                            <textarea id="incomeNotes" rows="2" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent" placeholder="Optional notes..."></textarea>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button type="submit" class="flex-1 btn py-2 px-4">
+                                <i class="fas fa-plus mr-2"></i>Add Income
+                            </button>
+                            <button type="button" id="cancelIncomeBtn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Vérifier si l'utilisateur est connecté avant de charger l'app
+        window.addEventListener('DOMContentLoaded', function() {
+            const currentUser = localStorage.getItem('currentUser');
+            if (!currentUser) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Afficher le nom de l'utilisateur et marquer comme connecté
+            try {
+                const user = JSON.parse(currentUser);
+                const userNameDisplay = document.getElementById('userNameDisplay');
+                if (userNameDisplay && user.name) {
+                    userNameDisplay.textContent = user.name;
+                }
+                // S'assurer que le body a la classe logged-in
+                document.body.classList.add('logged-in');
+            } catch (e) {
+                console.error('Erreur lors de la lecture des données utilisateur', e);
+            }
+        });
+    </script>
     <script src="js/app.js"></script>
     
     <!-- Floating Notes Button -->

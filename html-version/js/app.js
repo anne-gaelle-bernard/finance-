@@ -1,6 +1,8 @@
 // Finance & Budget Tracker - Main Application
 class FinanceTracker {
     constructor() {
+        this.currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+        this.users = JSON.parse(localStorage.getItem('users')) || [];
         this.transactions = JSON.parse(localStorage.getItem('transactions')) || [];
         this.folders = JSON.parse(localStorage.getItem('folders')) || [
             { id: 'taxes', name: '2025 Taxes', color: 'rose', receipts: [], totalAmount: 0 },
@@ -20,6 +22,7 @@ class FinanceTracker {
     }
 
     init() {
+        this.checkAuth();
         this.setupEventListeners();
         this.updateDashboard();
         this.renderTransactions();
@@ -29,16 +32,52 @@ class FinanceTracker {
         this.renderGoals();
         this.initializeChart();
         this.setDefaultDate();
+        this.updateFolderOptions();
         this.startReminderScheduler();
         // Ensure UI reflects persisted settings (currency, etc.)
         this.applySettingsToUI();
         // Open onboarding on first run
-        if (!this.settings.onboardingCompleted) {
+        if (this.currentUser && !this.settings.onboardingCompleted) {
             this.openOnboardingModal();
         }
     }
 
     setupEventListeners() {
+        // Authentication
+        const loginBtn = document.getElementById('loginBtn');
+        if (loginBtn) loginBtn.addEventListener('click', () => this.openLoginModal());
+        const registerBtn = document.getElementById('registerBtn');
+        if (registerBtn) registerBtn.addEventListener('click', () => this.openRegisterModal());
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) logoutBtn.addEventListener('click', () => this.logout());
+        
+        const closeLoginBtn = document.getElementById('closeLoginBtn');
+        if (closeLoginBtn) closeLoginBtn.addEventListener('click', () => this.closeLoginModal());
+        const cancelLoginBtn = document.getElementById('cancelLoginBtn');
+        if (cancelLoginBtn) cancelLoginBtn.addEventListener('click', () => this.closeLoginModal());
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+        
+        const closeRegisterBtn = document.getElementById('closeRegisterBtn');
+        if (closeRegisterBtn) closeRegisterBtn.addEventListener('click', () => this.closeRegisterModal());
+        const cancelRegisterBtn = document.getElementById('cancelRegisterBtn');
+        if (cancelRegisterBtn) cancelRegisterBtn.addEventListener('click', () => this.closeRegisterModal());
+        const registerForm = document.getElementById('registerForm');
+        if (registerForm) registerForm.addEventListener('submit', (e) => this.handleRegister(e));
+        
+        const switchToRegister = document.getElementById('switchToRegister');
+        if (switchToRegister) switchToRegister.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.closeLoginModal();
+            this.openRegisterModal();
+        });
+        const switchToLogin = document.getElementById('switchToLogin');
+        if (switchToLogin) switchToLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.closeRegisterModal();
+            this.openLoginModal();
+        });
+        
         // Quick Action Buttons
         document.getElementById('scanReceiptBtn').addEventListener('click', () => this.openScannerModal());
         document.getElementById('addExpenseBtn').addEventListener('click', () => this.openExpenseModal());
@@ -159,6 +198,14 @@ class FinanceTracker {
                 this.showNotification('Goal progress updated', 'success');
             });
         }
+
+        // Income Modal
+        const closeIncomeBtn = document.getElementById('closeIncomeBtn');
+        if (closeIncomeBtn) closeIncomeBtn.addEventListener('click', () => this.closeIncomeModal());
+        const cancelIncomeBtn = document.getElementById('cancelIncomeBtn');
+        if (cancelIncomeBtn) cancelIncomeBtn.addEventListener('click', () => this.closeIncomeModal());
+        const incomeForm = document.getElementById('incomeForm');
+        if (incomeForm) incomeForm.addEventListener('submit', (e) => this.handleIncomeSubmit(e));
 
         // Calculator Modal & Actions
         const calcBtn = document.getElementById('calcBtn');
@@ -585,25 +632,38 @@ class FinanceTracker {
         this.showNotification('Expense added successfully!', 'success');
     }
 
-    // Income Modal (placeholder)
+    // Income Modal
     openIncomeModal() {
-        // Create a simple prompt for now
-        const amount = prompt('Enter income amount:');
-        const description = prompt('Enter income description:');
+        document.getElementById('incomeModal').classList.remove('hidden');
+        const today = new Date().toISOString().split('T')[0];
+        const incomeDateInput = document.getElementById('incomeDate');
+        if (incomeDateInput) incomeDateInput.value = today;
+    }
+
+    closeIncomeModal() {
+        document.getElementById('incomeModal').classList.add('hidden');
+        document.getElementById('incomeForm').reset();
+        const today = new Date().toISOString().split('T')[0];
+        const incomeDateInput = document.getElementById('incomeDate');
+        if (incomeDateInput) incomeDateInput.value = today;
+    }
+
+    handleIncomeSubmit(event) {
+        event.preventDefault();
         
-        if (amount && description) {
-            const transaction = {
-                type: 'income',
-                description: description,
-                amount: parseFloat(amount),
-                date: new Date().toISOString().split('T')[0],
-                category: 'income',
-                hasReceipt: false
-            };
-            
-            this.addTransaction(transaction);
-            this.showNotification('Income added successfully!', 'success');
-        }
+        const transaction = {
+            type: 'income',
+            description: document.getElementById('incomeDescription').value,
+            amount: parseFloat(document.getElementById('incomeAmount').value),
+            date: document.getElementById('incomeDate').value,
+            category: 'income',
+            notes: document.getElementById('incomeNotes')?.value || '',
+            hasReceipt: false
+        };
+
+        this.addTransaction(transaction);
+        this.closeIncomeModal();
+        this.showNotification('Income added successfully!', 'success');
     }
 
     // Reminders
@@ -815,7 +875,8 @@ class FinanceTracker {
             this.showNotification('Folder created successfully!', 'success');
         }
     }
-
+if (!select) return;
+        
     addToFolder(folderId, transaction) {
         const folder = this.folders.find(f => f.id === folderId);
         if (folder) {
@@ -1453,62 +1514,7 @@ class FinanceTracker {
         }, 3000);
     }
 
-    // Data Persistence
-    saveData() {
-        localStorage.setItem('transactions', JSON.stringify(this.transactions));
-        localStorage.setItem('folders', JSON.stringify(this.folders));
-        localStorage.setItem('budgets', JSON.stringify(this.budgets));
-        localStorage.setItem('reminders', JSON.stringify(this.reminders));
-        localStorage.setItem('sideNotes', JSON.stringify(this.sideNotes));
-        localStorage.setItem('goals', JSON.stringify(this.goals));
-        localStorage.setItem('settings', JSON.stringify(this.settings));
-    }
-}
-
-// Initialize the application when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    window.financeTracker = new FinanceTracker();
-});
-
-// Add some demo data for testing
-function addDemoData() {
-    const tracker = window.financeTracker;
-    
-    // Demo transactions
-    const demoTransactions = [
-        {
-            type: 'expense',
-            description: 'Grocery Shopping',
-            amount: 85.50,
-            date: '2025-01-15',
-            category: 'food',
-            hasReceipt: true
-        },
-        {
-            type: 'expense',
-            description: 'Gas Station',
-            amount: 45.00,
-            date: '2025-01-14',
-            category: 'transport',
-            hasReceipt: false
-        },
-        {
-            type: 'income',
-            description: 'Salary',
-            amount: 3500.00,
-            date: '2025-01-01',
-            category: 'income',
-            hasReceipt: false
-        }
-    ];
-    
-    demoTransactions.forEach(transaction => {
-        tracker.addTransaction(transaction);
-    });
-}
-
-// Expose demo function globally for testing
-window.addDemoData = addDemoData;
+    // Push Notifications
     async requestNotificationPermission() {
         if (!('Notification' in window)) return 'unsupported';
         try {
@@ -1539,3 +1545,151 @@ window.addDemoData = addDemoData;
             this.showNotification(title, 'info');
         }
     }
+
+    // Data Persistence
+    saveData() {
+        localStorage.setItem('transactions', JSON.stringify(this.transactions));
+        localStorage.setItem('folders', JSON.stringify(this.folders));
+        localStorage.setItem('budgets', JSON.stringify(this.budgets));
+        localStorage.setItem('reminders', JSON.stringify(this.reminders));
+        localStorage.setItem('sideNotes', JSON.stringify(this.sideNotes));
+        localStorage.setItem('goals', JSON.stringify(this.goals));
+        localStorage.setItem('settings', JSON.stringify(this.settings));
+        localStorage.setItem('users', JSON.stringify(this.users));
+        localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+    }
+
+    // Authentication Methods
+    checkAuth() {
+        // Toujours marquer comme logged-in si l'utilisateur existe
+        if (this.currentUser) {
+            document.body.classList.add('logged-in');
+            this.loadUserData();
+        } else {
+            document.body.classList.remove('logged-in');
+        }
+    }
+
+    openLoginModal() {
+        const modal = document.getElementById('loginModal');
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    closeLoginModal() {
+        const modal = document.getElementById('loginModal');
+        if (modal) modal.classList.add('hidden');
+        const form = document.getElementById('loginForm');
+        if (form) form.reset();
+    }
+
+    handleLogin(event) {
+        event.preventDefault();
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        
+        const user = this.users.find(u => u.email === email && u.password === password);
+        
+        if (user) {
+            this.currentUser = { email: user.email, name: user.name };
+            this.saveData();
+            this.checkAuth();
+            this.closeLoginModal();
+            this.showNotification(`Bienvenue ${user.name}!`, 'success');
+            // Load user-specific data
+            this.loadUserData();
+            // Refresh all displays
+            this.updateDashboard();
+            this.renderTransactions();
+            this.renderGoals();
+        } else {
+            this.showNotification('Email ou mot de passe incorrect', 'error');
+        }
+    }
+
+    openRegisterModal() {
+        const modal = document.getElementById('registerModal');
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    closeRegisterModal() {
+        const modal = document.getElementById('registerModal');
+        if (modal) modal.classList.add('hidden');
+        const form = document.getElementById('registerForm');
+        if (form) form.reset();
+    }
+
+    handleRegister(event) {
+        event.preventDefault();
+        const name = document.getElementById('registerName').value.trim();
+        const email = document.getElementById('registerEmail').value.trim();
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('registerConfirmPassword').value;
+        
+        if (password !== confirmPassword) {
+            this.showNotification('Les mots de passe ne correspondent pas', 'error');
+            return;
+        }
+        
+        if (this.users.find(u => u.email === email)) {
+            this.showNotification('Cet email est déjà utilisé', 'error');
+            return;
+        }
+        
+        const newUser = {
+            id: Date.now().toString(),
+            name,
+            email,
+            password,
+            createdAt: new Date().toISOString()
+        };
+        
+        this.users.push(newUser);
+        this.currentUser = { email: newUser.email, name: newUser.name };
+        this.settings.name = name;
+        this.saveData();
+        this.checkAuth();
+        this.closeRegisterModal();
+        this.showNotification(`Compte créé avec succès! Bienvenue ${name}!`, 'success');
+        
+        // Open onboarding for new users
+        setTimeout(() => this.openOnboardingModal(), 500);
+    }
+
+    logout() {
+        if (confirm('Êtes-vous sûr de vouloir vous déconnecter?')) {
+            this.currentUser = null;
+            localStorage.removeItem('currentUser');
+            this.showNotification('Déconnexion réussie', 'success');
+            // Rediriger vers la page de connexion
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 500);
+        }
+    }
+
+    loadUserData() {
+        if (!this.currentUser) return;
+        // Load user-specific data from localStorage with user prefix
+        const userKey = this.currentUser.email;
+        this.transactions = JSON.parse(localStorage.getItem(`${userKey}_transactions`)) || [];
+        this.folders = JSON.parse(localStorage.getItem(`${userKey}_folders`)) || [
+            { id: 'taxes', name: '2025 Taxes', color: 'rose', receipts: [], totalAmount: 0 },
+            { id: 'business', name: 'Business Expenses', color: 'pink', receipts: [], totalAmount: 0 }
+        ];
+        this.budgets = JSON.parse(localStorage.getItem(`${userKey}_budgets`)) || {};
+        this.reminders = JSON.parse(localStorage.getItem(`${userKey}_reminders`)) || [];
+        this.sideNotes = JSON.parse(localStorage.getItem(`${userKey}_sideNotes`)) || [];
+        this.goals = JSON.parse(localStorage.getItem(`${userKey}_goals`)) || [];
+        this.settings = JSON.parse(localStorage.getItem(`${userKey}_settings`)) || { 
+            name: this.currentUser.name, 
+            currency: 'USD', 
+            theme: 'light', 
+            onboardingCompleted: false 
+        };
+    }
+}
+
+// Initialize the application when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    window.financeTracker = new FinanceTracker();
+});
