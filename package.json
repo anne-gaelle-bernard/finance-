@@ -3,12 +3,11 @@
   "version": "1.0.0",
   "description": "Personal finance and budget tracker with receipt scanning, categorization, and folder storage",
   "main": "index.html",
+  "private": true,
   "scripts": {
-    "start": "live-server --port=3000",
-    "build": "npm run minify-css && npm run minify-js",
-    "minify-css": "cleancss -o dist/style.min.css src/css/style.css",
-    "minify-js": "uglifyjs src/js/*.js -o dist/app.min.js",
-    "test": "jest"
+    "start": "echo 'This is a monorepo. Run backend or frontend separately.'",
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm run dev"
   },
   "keywords": [
     "finance",
