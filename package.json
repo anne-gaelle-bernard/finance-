@@ -1,32 +1,24 @@
 {
   "name": "finance-budget-tracker",
   "version": "1.0.0",
-  "description": "Personal finance and budget tracker with receipt scanning, categorization, and folder storage",
-  "main": "index.html",
+  "description": "Personal finance tracker - monorepo",
   "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "scripts": {
-    "start": "echo 'This is a monorepo. Run backend or frontend separately.'",
     "backend": "cd backend && npm run dev",
     "frontend": "cd frontend && npm run dev"
   },
-  "keywords": [
-    "finance",
-    "budget",
-    "receipt-scanner",
-    "expense-tracker",
-    "ocr",
-    "personal-finance"
-  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anne-gaelle-bernard/finance-"
+  },
   "author": "Finance Tracker Team",
-  "license": "MIT",
-  "dependencies": {
-    "chart.js": "^4.4.0",
-    "tesseract.js": "^5.0.4",
-    "date-fns": "^2.30.0",
-    "sortablejs": "^1.15.0",
-    "file-saver": "^2.0.5",
-    "jspdf": "^2.5.1",
-    "xlsx": "^0.18.5"
+  "license": "MIT"
+}
+
   },
   "devDependencies": {
     "live-server": "^1.2.2",

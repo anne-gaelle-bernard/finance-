@@ -1,8 +1,15 @@
-node_modules
-frontend
-html-version
-.git
-.github
+# Ignore everything except backend
+*
+!backend/
+!backend/**
+!nixpacks.toml
+!railway.toml
+
+# Explicitly ignore these
+frontend/
+html-version/
+.git/
+.github/
+node_modules/
 *.md
-package.json
-package-lock.json
+!backend/**/*.md
