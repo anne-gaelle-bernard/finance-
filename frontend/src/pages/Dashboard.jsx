@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import { Menu } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useData } from '../contexts/DataContext'
-import Navbar from '../components/Navbar'
+import Sidebar from '../components/Sidebar'
 import StatsCards from '../components/StatsCards'
 import QuickActions from '../components/QuickActions'
 import TransactionList from '../components/TransactionList'
@@ -20,10 +21,16 @@ import AddReceiptModal from '../components/modals/AddReceiptModal'
 import FolderDetailsModal from '../components/modals/FolderDetailsModal'
 import CalculatorModal from '../components/modals/CalculatorModal'
 import FinanceSimulatorModal from '../components/modals/FinanceSimulatorModal'
+import ProfileSection from '../components/sections/ProfileSection'
+import AnalyticsSection from '../components/sections/AnalyticsSection'
+import FoldersSection from '../components/sections/FoldersSection'
 
 const Dashboard = () => {
   const { currentUser } = useAuth()
   const { transactions, goals, reminders, notes, folders } = useData()
+  
+  const [activeSection, setActiveSection] = useState('dashboard')
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
   
   const [showExpenseModal, setShowExpenseModal] = useState(false)
   const [showIncomeModal, setShowIncomeModal] = useState(false)
@@ -49,47 +56,100 @@ const Dashboard = () => {
 
   const totalReceipts = folders.reduce((sum, folder) => sum + (folder.receipts?.length || 0), 0)
 
+  const handleSectionChange = (section) => {
+    setActiveSection(section)
+    if (section === 'simulator') {
+      setShowSimulatorModal(true)
+    }
+  }
+
   return (
-    <div className="min-h-screen">
-      <Navbar userName={currentUser?.name} />
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex">
+      {/* Sidebar */}
+      <Sidebar 
+        activeSection={activeSection}
+        onSectionChange={handleSectionChange}
+        isMobileOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
-        <StatsCards
-          totalIncome={totalIncome}
-          totalExpenses={totalExpenses}
-          netSavings={netSavings}
-          receiptsCount={totalReceipts}
-        />
+      {/* Main Content */}
+      <div className="flex-1 min-h-screen overflow-auto">
+        {/* Mobile Header */}
+        <div className="lg:hidden sticky top-0 z-30 bg-white shadow-md px-4 py-3 flex items-center justify-between">
+          <button
+            onClick={() => setIsMobileSidebarOpen(true)}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <Menu size={24} className="text-gray-700" />
+          </button>
+          <h1 className="text-lg font-bold text-gray-800">💸 Finance Tracker</h1>
+          <div className="w-10"></div>
+        </div>
 
-        {/* Quick Actions */}
-        <QuickActions
-          onAddExpense={() => setShowExpenseModal(true)}
-          onAddIncome={() => setShowIncomeModal(true)}
-          onAddGoal={() => setShowGoalModal(true)}
-          onAddReminder={() => setShowReminderModal(true)}
-          onAddNote={() => setShowNoteModal(true)}
-          onScanReceipt={() => setShowReceiptModal(true)}
-          onAddFolder={() => setShowFolderModal(true)}
-          onCalculator={() => setShowCalculatorModal(true)}
-          onSimulator={() => setShowSimulatorModal(true)}
-        />
+        {/* Content Area */}
+        <div className="p-4 sm:p-6 lg:p-8">
+          {/* Dashboard Section */}
+          {activeSection === 'dashboard' && (
+            <>
+              <div className="mb-6">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Dashboard</h1>
+                <p className="text-gray-600">Bienvenue, {currentUser?.name}</p>
+              </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-          {/* Left Column */}
-          <div className="lg:col-span-2 space-y-4 sm:space-y-6 lg:space-y-8">
-            <TransactionList transactions={transactions} />
-            <ExpenseChart transactions={transactions} />
-          </div>
+              <StatsCards
+                totalIncome={totalIncome}
+                totalExpenses={totalExpenses}
+                netSavings={netSavings}
+                receiptsCount={totalReceipts}
+              />
 
-          {/* Right Column */}
-          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-            <FoldersList onSelectFolder={(folder) => setSelectedFolder(folder)} />
-            <GoalsList goals={goals} />
-            <RemindersList reminders={reminders} />
-            <NotesList notes={notes} />
-          </div>
+              <QuickActions
+                onAddExpense={() => setShowExpenseModal(true)}
+                onAddIncome={() => setShowIncomeModal(true)}
+                onAddGoal={() => setShowGoalModal(true)}
+                onAddReminder={() => setShowReminderModal(true)}
+                onAddNote={() => setShowNoteModal(true)}
+                onScanReceipt={() => setShowReceiptModal(true)}
+                onAddFolder={() => setShowFolderModal(true)}
+                onCalculator={() => setShowCalculatorModal(true)}
+                onSimulator={() => setShowSimulatorModal(true)}
+              />
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+                <div className="lg:col-span-2 space-y-4 sm:space-y-6 lg:space-y-8">
+                  <TransactionList transactions={transactions} />
+                  <ExpenseChart transactions={transactions} />
+                </div>
+
+                <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+                  <FoldersList onSelectFolder={(folder) => setSelectedFolder(folder)} />
+                  <GoalsList goals={goals} />
+                  <RemindersList reminders={reminders} />
+                  <NotesList notes={notes} />
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Profile Section */}
+          {activeSection === 'profile' && (
+            <ProfileSection />
+          )}
+
+          {/* Analytics Section */}
+          {activeSection === 'analytics' && (
+            <AnalyticsSection transactions={transactions} />
+          )}
+
+          {/* Folders Section */}
+          {activeSection === 'folders' && (
+            <FoldersSection 
+              folders={folders}
+              onSelectFolder={(folder) => setSelectedFolder(folder)}
+              onAddFolder={() => setShowFolderModal(true)}
+            />
+          )}
         </div>
       </div>
 
