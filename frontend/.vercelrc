@@ -1,0 +1,15 @@
+# Vercel Deployment Configuration
+
+## Build Settings
+- **Framework Preset**: Vite
+- **Root Directory**: `frontend`
+- **Build Command**: `npm run build`
+- **Output Directory**: `dist`
+- **Install Command**: `npm install`
+
+## Environment Variables
+Add in Vercel dashboard:
+- `VITE_API_URL` = `https://finance-production-b622.up.railway.app/api`
+
+## Node Version
+- Node.js 18.x or higher
