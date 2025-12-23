@@ -34,23 +34,41 @@ app.use('/api/reminders', require('./routes/reminders'));
 app.use('/api/notes', require('./routes/notes'));
 app.use('/api/user', require('./routes/user'));
 
-// Root route
+// Root route - HTML welcome page
 app.get('/', (req, res) => {
-  res.json({
-    message: '💰 Finance Tracker API',
-    version: '1.0.0',
-    status: 'running',
-    endpoints: {
-      health: '/api/health',
-      auth: '/api/auth',
-      transactions: '/api/transactions',
-      folders: '/api/folders',
-      goals: '/api/goals',
-      reminders: '/api/reminders',
-      notes: '/api/notes',
-      user: '/api/user'
-    }
-  });
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Finance Tracker API</title>
+      <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2563eb; }
+        .endpoint { background: #f0f9ff; padding: 10px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #2563eb; }
+        .status { color: #16a34a; font-weight: bold; }
+        code { background: #e5e7eb; padding: 2px 6px; border-radius: 3px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>💰 Finance Tracker API</h1>
+        <p class="status">✅ Status: Running</p>
+        <p>Version: 1.0.0</p>
+        <h2>Available Endpoints:</h2>
+        <div class="endpoint"><strong>GET</strong> <code>/api/health</code> - Health check</div>
+        <div class="endpoint"><strong>POST</strong> <code>/api/auth/register</code> - Register user</div>
+        <div class="endpoint"><strong>POST</strong> <code>/api/auth/login</code> - Login user</div>
+        <div class="endpoint"><strong>GET</strong> <code>/api/transactions</code> - Get transactions</div>
+        <div class="endpoint"><strong>GET</strong> <code>/api/folders</code> - Get folders</div>
+        <div class="endpoint"><strong>GET</strong> <code>/api/goals</code> - Get goals</div>
+        <div class="endpoint"><strong>GET</strong> <code>/api/reminders</code> - Get reminders</div>
+        <div class="endpoint"><strong>GET</strong> <code>/api/notes</code> - Get notes</div>
+        <div class="endpoint"><strong>GET</strong> <code>/api/user</code> - Get user profile</div>
+      </div>
+    </body>
+    </html>
+  `);
 });
 
 // Health check
