@@ -1,52 +1,58 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const db = require('../models/database');
+const Goal = require('../models/Goal');
 
-router.get('/', auth, (req, res) => {
+router.get('/', auth, async (req, res) => {
   try {
-    const goals = db.getGoalsByUserId(req.userId);
+    const goals = await Goal.find({ userId: req.userId }).sort({ createdAt: -1 });
     res.json({ success: true, data: goals });
   } catch (error) {
+    console.error('Get goals error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
 
-router.post('/', auth, (req, res) => {
+router.post('/', auth, async (req, res) => {
   try {
-    const goal = {
-      id: Date.now().toString(),
+    const goal = new Goal({
       userId: req.userId,
-      ...req.body,
-      createdAt: new Date().toISOString()
-    };
-    const created = db.createGoal(goal);
-    res.status(201).json({ success: true, data: created });
+      ...req.body
+    });
+    await goal.save();
+    res.status(201).json({ success: true, data: goal });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Create goal error:', error);
+    res.status(400).json({ success: false, message: error.message });
   }
 });
 
-router.put('/:id', auth, (req, res) => {
+router.put('/:id', auth, async (req, res) => {
   try {
-    const updated = db.updateGoal(req.params.id, req.userId, req.body);
-    if (!updated) {
+    const goal = await Goal.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
+      { ...req.body, updatedAt: Date.now() },
+      { new: true, runValidators: true }
+    );
+    if (!goal) {
       return res.status(404).json({ success: false, message: 'Goal not found' });
     }
-    res.json({ success: true, data: updated });
+    res.json({ success: true, data: goal });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Update goal error:', error);
+    res.status(400).json({ success: false, message: error.message });
   }
 });
 
-router.delete('/:id', auth, (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
   try {
-    const deleted = db.deleteGoal(req.params.id, req.userId);
-    if (!deleted) {
+    const goal = await Goal.findOneAndDelete({ _id: req.params.id, userId: req.userId });
+    if (!goal) {
       return res.status(404).json({ success: false, message: 'Goal not found' });
     }
     res.json({ success: true, message: 'Goal deleted' });
   } catch (error) {
+    console.error('Delete goal error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });

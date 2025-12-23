@@ -1,53 +1,58 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const db = require('../models/database');
+const Reminder = require('../models/Reminder');
 
-router.get('/', auth, (req, res) => {
+router.get('/', auth, async (req, res) => {
   try {
-    const reminders = db.getRemindersByUserId(req.userId);
+    const reminders = await Reminder.find({ userId: req.userId }).sort({ dueDate: 1 });
     res.json({ success: true, data: reminders });
   } catch (error) {
+    console.error('Get reminders error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
 
-router.post('/', auth, (req, res) => {
+router.post('/', auth, async (req, res) => {
   try {
-    const reminder = {
-      id: Date.now().toString(),
+    const reminder = new Reminder({
       userId: req.userId,
-      ...req.body,
-      completed: false,
-      createdAt: new Date().toISOString()
-    };
-    const created = db.createReminder(reminder);
-    res.status(201).json({ success: true, data: created });
+      ...req.body
+    });
+    await reminder.save();
+    res.status(201).json({ success: true, data: reminder });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Create reminder error:', error);
+    res.status(400).json({ success: false, message: error.message });
   }
 });
 
-router.put('/:id', auth, (req, res) => {
+router.put('/:id', auth, async (req, res) => {
   try {
-    const updated = db.updateReminder(req.params.id, req.userId, req.body);
-    if (!updated) {
+    const reminder = await Reminder.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
+      { ...req.body, updatedAt: Date.now() },
+      { new: true, runValidators: true }
+    );
+    if (!reminder) {
       return res.status(404).json({ success: false, message: 'Reminder not found' });
     }
-    res.json({ success: true, data: updated });
+    res.json({ success: true, data: reminder });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Update reminder error:', error);
+    res.status(400).json({ success: false, message: error.message });
   }
 });
 
-router.delete('/:id', auth, (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
   try {
-    const deleted = db.deleteReminder(req.params.id, req.userId);
-    if (!deleted) {
+    const reminder = await Reminder.findOneAndDelete({ _id: req.params.id, userId: req.userId });
+    if (!reminder) {
       return res.status(404).json({ success: false, message: 'Reminder not found' });
     }
     res.json({ success: true, message: 'Reminder deleted' });
   } catch (error) {
+    console.error('Delete reminder error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });

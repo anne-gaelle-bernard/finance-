@@ -1,54 +1,111 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const db = require('../models/database');
+const Folder = require('../models/Folder');
 
-router.get('/', auth, (req, res) => {
+// Get all folders for user
+router.get('/', auth, async (req, res) => {
   try {
-    const folders = db.getFoldersByUserId(req.userId);
+    const folders = await Folder.find({ userId: req.userId }).sort({ createdAt: -1 });
     res.json({ success: true, data: folders });
   } catch (error) {
+    console.error('Get folders error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
 
-router.post('/', auth, (req, res) => {
+// Create new folder
+router.post('/', auth, async (req, res) => {
   try {
-    const folder = {
-      id: Date.now().toString(),
+    const folder = new Folder({
       userId: req.userId,
-      ...req.body,
-      receipts: [],
-      totalAmount: 0,
-      createdAt: new Date().toISOString()
-    };
-    const created = db.createFolder(folder);
-    res.status(201).json({ success: true, data: created });
+      name: req.body.name,
+      color: req.body.color || 'pink',
+      receipts: req.body.receipts || []
+    });
+    
+    await folder.save();
+    res.status(201).json({ success: true, data: folder });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Create folder error:', error);
+    res.status(400).json({ success: false, message: error.message });
   }
 });
 
-router.put('/:id', auth, (req, res) => {
+// Update folder
+router.put('/:id', auth, async (req, res) => {
   try {
-    const updated = db.updateFolder(req.params.id, req.userId, req.body);
-    if (!updated) {
+    const folder = await Folder.findOne({ _id: req.params.id, userId: req.userId });
+    
+    if (!folder) {
       return res.status(404).json({ success: false, message: 'Folder not found' });
     }
-    res.json({ success: true, data: updated });
+
+    folder.name = req.body.name || folder.name;
+    folder.color = req.body.color || folder.color;
+    
+    if (req.body.receipts) {
+      folder.receipts = req.body.receipts;
+    }
+    
+    await folder.save();
+    res.json({ success: true, data: folder });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Update folder error:', error);
+    res.status(400).json({ success: false, message: error.message });
   }
 });
 
-router.delete('/:id', auth, (req, res) => {
+// Add receipt to folder
+router.post('/:id/receipts', auth, async (req, res) => {
   try {
-    const deleted = db.deleteFolder(req.params.id, req.userId);
-    if (!deleted) {
+    const folder = await Folder.findOne({ _id: req.params.id, userId: req.userId });
+    
+    if (!folder) {
       return res.status(404).json({ success: false, message: 'Folder not found' });
     }
+
+    folder.receipts.push(req.body);
+    await folder.save();
+    
+    res.status(201).json({ success: true, data: folder });
+  } catch (error) {
+    console.error('Add receipt error:', error);
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+// Delete receipt from folder
+router.delete('/:id/receipts/:receiptId', auth, async (req, res) => {
+  try {
+    const folder = await Folder.findOne({ _id: req.params.id, userId: req.userId });
+    
+    if (!folder) {
+      return res.status(404).json({ success: false, message: 'Folder not found' });
+    }
+
+    folder.receipts = folder.receipts.filter(r => r._id.toString() !== req.params.receiptId);
+    await folder.save();
+    
+    res.json({ success: true, data: folder });
+  } catch (error) {
+    console.error('Delete receipt error:', error);
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+// Delete folder
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const folder = await Folder.findOneAndDelete({ _id: req.params.id, userId: req.userId });
+    
+    if (!folder) {
+      return res.status(404).json({ success: false, message: 'Folder not found' });
+    }
+    
     res.json({ success: true, message: 'Folder deleted' });
   } catch (error) {
+    console.error('Delete folder error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
