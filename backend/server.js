@@ -36,7 +36,15 @@ app.use('/api/user', require('./routes/user'));
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Finance Tracker API is running' });
+  const mongoose = require('mongoose');
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  
+  res.json({ 
+    status: 'OK', 
+    message: 'Finance Tracker API is running',
+    database: dbStatus,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Error handling middleware
