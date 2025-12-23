@@ -1,4 +1,4 @@
-const QuickActions = ({ onAddExpense, onAddIncome, onAddGoal, onAddReminder, onAddNote, onCalculator, onScanReceipt, onAddFolder }) => {
+const QuickActions = ({ onAddExpense, onAddIncome, onAddGoal, onAddReminder, onAddNote, onCalculator, onScanReceipt, onAddFolder, onSimulator }) => {
   const actions = [
     { icon: 'fa-minus-circle', label: 'Add Expense', onClick: onAddExpense },
     { icon: 'fa-plus-circle', label: 'Add Income', onClick: onAddIncome },
@@ -7,7 +7,8 @@ const QuickActions = ({ onAddExpense, onAddIncome, onAddGoal, onAddReminder, onA
     { icon: 'fa-sticky-note', label: 'Add Note', onClick: onAddNote },
     { icon: 'fa-camera', label: 'Scan Receipt', onClick: onScanReceipt },
     { icon: 'fa-folder-plus', label: 'Add Folder', onClick: onAddFolder },
-    { icon: 'fa-calculator', label: 'Calculator', onClick: onCalculator }
+    { icon: 'fa-calculator', label: 'Calculator', onClick: onCalculator },
+    { icon: 'fa-chart-line', label: 'Simulator', onClick: onSimulator }
   ]
 
   return (
