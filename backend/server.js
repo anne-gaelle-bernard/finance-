@@ -34,6 +34,25 @@ app.use('/api/reminders', require('./routes/reminders'));
 app.use('/api/notes', require('./routes/notes'));
 app.use('/api/user', require('./routes/user'));
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    message: '💰 Finance Tracker API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      transactions: '/api/transactions',
+      folders: '/api/folders',
+      goals: '/api/goals',
+      reminders: '/api/reminders',
+      notes: '/api/notes',
+      user: '/api/user'
+    }
+  });
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   const mongoose = require('mongoose');
