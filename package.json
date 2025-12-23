@@ -1,12 +1,8 @@
 {
   "name": "finance-budget-tracker",
   "version": "1.0.0",
-  "description": "Personal finance tracker - monorepo",
+  "description": "Personal finance tracker",
   "private": true,
-  "workspaces": [
-    "backend",
-    "frontend"
-  ],
   "scripts": {
     "backend": "cd backend && npm run dev",
     "frontend": "cd frontend && npm run dev"
