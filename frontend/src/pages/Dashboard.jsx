@@ -20,10 +20,10 @@ import AddFolderModal from '../components/modals/AddFolderModal'
 import AddReceiptModal from '../components/modals/AddReceiptModal'
 import FolderDetailsModal from '../components/modals/FolderDetailsModal'
 import CalculatorModal from '../components/modals/CalculatorModal'
-import FinanceSimulatorModal from '../components/modals/FinanceSimulatorModal'
 import ProfileSection from '../components/sections/ProfileSection'
 import AnalyticsSection from '../components/sections/AnalyticsSection'
 import FoldersSection from '../components/sections/FoldersSection'
+import FinanceSimulatorSection from '../components/sections/FinanceSimulatorSection'
 
 const Dashboard = () => {
   const { currentUser } = useAuth()
@@ -40,7 +40,6 @@ const Dashboard = () => {
   const [showCalculatorModal, setShowCalculatorModal] = useState(false)
   const [showFolderModal, setShowFolderModal] = useState(false)
   const [showReceiptModal, setShowReceiptModal] = useState(false)
-  const [showSimulatorModal, setShowSimulatorModal] = useState(false)
   const [selectedFolder, setSelectedFolder] = useState(null)
 
   // Calculate totals
@@ -58,9 +57,6 @@ const Dashboard = () => {
 
   const handleSectionChange = (section) => {
     setActiveSection(section)
-    if (section === 'simulator') {
-      setShowSimulatorModal(true)
-    }
   }
 
   return (
@@ -113,7 +109,7 @@ const Dashboard = () => {
                 onScanReceipt={() => setShowReceiptModal(true)}
                 onAddFolder={() => setShowFolderModal(true)}
                 onCalculator={() => setShowCalculatorModal(true)}
-                onSimulator={() => setShowSimulatorModal(true)}
+                onSimulator={() => setActiveSection('simulator')}
               />
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
@@ -150,6 +146,11 @@ const Dashboard = () => {
               onAddFolder={() => setShowFolderModal(true)}
             />
           )}
+
+          {/* Simulator Section */}
+          {activeSection === 'simulator' && (
+            <FinanceSimulatorSection />
+          )}
         </div>
       </div>
 
@@ -183,9 +184,6 @@ const Dashboard = () => {
       )}
       {showCalculatorModal && (
         <CalculatorModal onClose={() => setShowCalculatorModal(false)} />
-      )}
-      {showSimulatorModal && (
-        <FinanceSimulatorModal isOpen={showSimulatorModal} onClose={() => setShowSimulatorModal(false)} />
       )}
     </div>
   )
