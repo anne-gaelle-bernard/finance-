@@ -20,6 +20,7 @@ import AddFolderModal from '../components/modals/AddFolderModal'
 import AddReceiptModal from '../components/modals/AddReceiptModal'
 import FolderDetailsModal from '../components/modals/FolderDetailsModal'
 import CalculatorModal from '../components/modals/CalculatorModal'
+import ImportCSVModal from '../components/modals/ImportCSVModal'
 import ProfileSection from '../components/sections/ProfileSection'
 import AnalyticsSection from '../components/sections/AnalyticsSection'
 import FoldersSection from '../components/sections/FoldersSection'
@@ -40,6 +41,7 @@ const Dashboard = () => {
   const [showCalculatorModal, setShowCalculatorModal] = useState(false)
   const [showFolderModal, setShowFolderModal] = useState(false)
   const [showReceiptModal, setShowReceiptModal] = useState(false)
+  const [showImportCSVModal, setShowImportCSVModal] = useState(false)
   const [selectedFolder, setSelectedFolder] = useState(null)
 
   // Calculate totals
@@ -110,6 +112,7 @@ const Dashboard = () => {
                 onAddFolder={() => setShowFolderModal(true)}
                 onCalculator={() => setShowCalculatorModal(true)}
                 onSimulator={() => setActiveSection('simulator')}
+                onImportCSV={() => setShowImportCSVModal(true)}
               />
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
@@ -184,6 +187,9 @@ const Dashboard = () => {
       )}
       {showCalculatorModal && (
         <CalculatorModal onClose={() => setShowCalculatorModal(false)} />
+      )}
+      {showImportCSVModal && (
+        <ImportCSVModal onClose={() => setShowImportCSVModal(false)} />
       )}
     </div>
   )

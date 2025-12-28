@@ -1,4 +1,4 @@
-const QuickActions = ({ onAddExpense, onAddIncome, onAddGoal, onAddReminder, onAddNote, onCalculator, onScanReceipt, onAddFolder, onSimulator }) => {
+const QuickActions = ({ onAddExpense, onAddIncome, onAddGoal, onAddReminder, onAddNote, onCalculator, onScanReceipt, onAddFolder, onSimulator, onImportCSV }) => {
   const actions = [
     { icon: 'fa-minus-circle', label: 'Add Expense', onClick: onAddExpense },
     { icon: 'fa-plus-circle', label: 'Add Income', onClick: onAddIncome },
@@ -7,6 +7,7 @@ const QuickActions = ({ onAddExpense, onAddIncome, onAddGoal, onAddReminder, onA
     { icon: 'fa-sticky-note', label: 'Add Note', onClick: onAddNote },
     { icon: 'fa-camera', label: 'Scan Receipt', onClick: onScanReceipt },
     { icon: 'fa-folder-plus', label: 'Add Folder', onClick: onAddFolder },
+    { icon: 'fa-file-csv', label: 'Import CSV', onClick: onImportCSV },
     { icon: 'fa-calculator', label: 'Calculator', onClick: onCalculator },
     { icon: 'fa-chart-line', label: 'Simulator', onClick: onSimulator }
   ]
