@@ -9,9 +9,10 @@ const Login = () => {
   const [message, setMessage] = useState({ type: '', text: '' })
   const { login } = useAuth()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    const result = login(email, password)
+    setMessage({ type: '', text: '' })
+    const result = await login(email, password)
     
     if (!result.success) {
       setMessage({ type: 'error', text: result.message })

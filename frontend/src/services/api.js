@@ -27,60 +27,136 @@ api.interceptors.request.use(
 
 // Auth API
 export const authAPI = {
-  register: (userData) => api.post('/auth/register', userData),
-  login: (credentials) => api.post('/auth/login', credentials),
-  getProfile: () => api.get('/user/profile'),
-  updateProfile: (userData) => api.put('/user/profile', userData),
+  register: async (userData) => {
+    const response = await api.post('/auth/register', userData);
+    return response.data;
+  },
+  login: async (credentials) => {
+    const response = await api.post('/auth/login', credentials);
+    return response.data;
+  },
+  getProfile: async () => {
+    const response = await api.get('/user/profile');
+    return response.data;
+  },
+  updateProfile: async (userData) => {
+    const response = await api.put('/user/profile', userData);
+    return response.data;
+  },
 };
 
 // Transaction API
 export const transactionAPI = {
-  getAll: () => api.get('/transactions'),
-  create: (transaction) => api.post('/transactions', transaction),
-  update: (id, transaction) => api.put(`/transactions/${id}`, transaction),
-  delete: (id) => api.delete(`/transactions/${id}`),
-  importCSV: (file) => {
+  getAll: async () => {
+    const response = await api.get('/transactions');
+    return response.data;
+  },
+  create: async (transaction) => {
+    const response = await api.post('/transactions', transaction);
+    return response.data;
+  },
+  update: async (id, transaction) => {
+    const response = await api.put(`/transactions/${id}`, transaction);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/transactions/${id}`);
+    return response.data;
+  },
+  importCSV: async (file) => {
     const formData = new FormData();
     formData.append('file', file);
-    return api.post('/import', formData, {
+    const response = await api.post('/import', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
+    return response.data;
   },
-  exportCSV: () => api.get('/transactions/export', { responseType: 'blob' }),
+  exportCSV: async () => {
+    const response = await api.get('/transactions/export', { responseType: 'blob' });
+    return response.data;
+  },
 };
 
 // Folder API
 export const folderAPI = {
-  getAll: () => api.get('/folders'),
-  create: (folder) => api.post('/folders', folder),
-  update: (id, folder) => api.put(`/folders/${id}`, folder),
-  delete: (id) => api.delete(`/folders/${id}`),
+  getAll: async () => {
+    const response = await api.get('/folders');
+    return response.data;
+  },
+  create: async (folder) => {
+    const response = await api.post('/folders', folder);
+    return response.data;
+  },
+  update: async (id, folder) => {
+    const response = await api.put(`/folders/${id}`, folder);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/folders/${id}`);
+    return response.data;
+  },
 };
 
 // Goal API
 export const goalAPI = {
-  getAll: () => api.get('/goals'),
-  create: (goal) => api.post('/goals', goal),
-  update: (id, goal) => api.put(`/goals/${id}`, goal),
-  delete: (id) => api.delete(`/goals/${id}`),
+  getAll: async () => {
+    const response = await api.get('/goals');
+    return response.data;
+  },
+  create: async (goal) => {
+    const response = await api.post('/goals', goal);
+    return response.data;
+  },
+  update: async (id, goal) => {
+    const response = await api.put(`/goals/${id}`, goal);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/goals/${id}`);
+    return response.data;
+  },
 };
 
 // Reminder API
 export const reminderAPI = {
-  getAll: () => api.get('/reminders'),
-  create: (reminder) => api.post('/reminders', reminder),
-  update: (id, reminder) => api.put(`/reminders/${id}`, reminder),
-  delete: (id) => api.delete(`/reminders/${id}`),
+  getAll: async () => {
+    const response = await api.get('/reminders');
+    return response.data;
+  },
+  create: async (reminder) => {
+    const response = await api.post('/reminders', reminder);
+    return response.data;
+  },
+  update: async (id, reminder) => {
+    const response = await api.put(`/reminders/${id}`, reminder);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/reminders/${id}`);
+    return response.data;
+  },
 };
 
 // Note API
 export const noteAPI = {
-  getAll: () => api.get('/notes'),
-  create: (note) => api.post('/notes', note),
-  update: (id, note) => api.put(`/notes/${id}`, note),
-  delete: (id) => api.delete(`/notes/${id}`),
+  getAll: async () => {
+    const response = await api.get('/notes');
+    return response.data;
+  },
+  create: async (note) => {
+    const response = await api.post('/notes', note);
+    return response.data;
+  },
+  update: async (id, note) => {
+    const response = await api.put(`/notes/${id}`, note);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/notes/${id}`);
+    return response.data;
+  },
 };
 
 export default api;

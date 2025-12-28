@@ -20,15 +20,16 @@ const Register = () => {
 
   const strength = getPasswordStrength()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setMessage({ type: '', text: '' })
     
     if (password !== confirmPassword) {
       setMessage({ type: 'error', text: 'Les mots de passe ne correspondent pas' })
       return
     }
 
-    const result = register(name, email, password)
+    const result = await register(name, email, password)
     
     if (!result.success) {
       setMessage({ type: 'error', text: result.message })
