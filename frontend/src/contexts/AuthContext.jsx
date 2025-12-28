@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { authAPI } from '../services/api'
 
 const AuthContext = createContext()
 
@@ -13,55 +14,70 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null)
-  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Load from localStorage
+    // Check for existing token and validate
+    const token = localStorage.getItem('token')
     const savedUser = localStorage.getItem('currentUser')
-    const savedUsers = localStorage.getItem('users')
     
-    if (savedUser) {
+    if (token && savedUser) {
       setCurrentUser(JSON.parse(savedUser))
     }
-    if (savedUsers) {
-      setUsers(JSON.parse(savedUsers))
-    }
+    setLoading(false)
   }, [])
 
-  const login = (email, password) => {
-    const user = users.find(u => u.email === email && u.password === password)
-    
-    if (user) {
-      const userData = { email: user.email, name: user.name }
-      setCurrentUser(userData)
-      localStorage.setItem('currentUser', JSON.stringify(userData))
-      navigate('/dashboard')
-      return { success: true, message: `Bienvenue ${user.name}!` }
+  const login = async (email, password) => {
+    try {
+      const response = await authAPI.login({ email, password })
+      
+      if (response.token && response.user) {
+        // Store token and user data
+        localStorage.setItem('token', response.token)
+        localStorage.setItem('currentUser', JSON.stringify(response.user))
+        
+        setCurrentUser(response.user)
+        navigate('/dashboard')
+        return { success: true, message: `Bienvenue ${response.user.name}!` }
+      }
+      return { success: false, message: 'Erreur de connexion' }
+    } catch (error) {
+      console.error('Login error:', error)
+      return { 
+        success: false, 
+        message: error.response?.data?.message || 'Email ou mot de passe incorrect' 
+      }
     }
-    return { success: false, message: 'Email ou mot de passe incorrect' }
   }
 
-  const register = (name, email, password) => {
-    if (users.find(u => u.email === email)) {
-      return { success: false, message: 'Cet email est déjà utilisé' }
+  const register = async (name, email, password) => {
+    try {
+      const response = await authAPI.register({ name, email, password })
+      
+      if (response.token && response.user) {
+        // Store token and user data
+        localStorage.setItem('token', response.token)
+        localStorage.setItem('currentUser', JSON.stringify(response.user))
+        
+        setCurrentUser(response.user)
+        navigate('/dashboard')
+        return { success: true, message: `Compte créé avec succès! Bienvenue ${name}!` }
+      }
+      return { success: false, message: 'Erreur lors de la création du compte' }
+    } catch (error) {
+      console.error('Register error:', error)
+      return { 
+        success: false, 
+        message: error.response?.data?.message || 'Cet email est déjà utilisé' 
+      }
     }
-
-    const newUser = { name, email, password }
-    const updatedUsers = [...users, newUser]
-    setUsers(updatedUsers)
-    localStorage.setItem('users', JSON.stringify(updatedUsers))
-
-    const userData = { email, name }
-    setCurrentUser(userData)
-    localStorage.setItem('currentUser', JSON.stringify(userData))
-    navigate('/dashboard')
-    return { success: true, message: `Compte créé avec succès! Bienvenue ${name}!` }
   }
 
   const logout = () => {
     setCurrentUser(null)
     localStorage.removeItem('currentUser')
+    localStorage.removeItem('token')
     navigate('/login')
   }
 
@@ -70,7 +86,12 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    loading,
     isAuthenticated: !!currentUser
+  }
+
+  if (loading) {
+    return <div>Chargement...</div>
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
