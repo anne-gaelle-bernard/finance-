@@ -28,6 +28,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/transactions', require('./routes/transactions'));
+app.use('/api/import', require('./routes/import'));
 app.use('/api/folders', require('./routes/folders'));
 app.use('/api/goals', require('./routes/goals'));
 app.use('/api/reminders', require('./routes/reminders'));

@@ -39,6 +39,16 @@ export const transactionAPI = {
   create: (transaction) => api.post('/transactions', transaction),
   update: (id, transaction) => api.put(`/transactions/${id}`, transaction),
   delete: (id) => api.delete(`/transactions/${id}`),
+  importCSV: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  exportCSV: () => api.get('/transactions/export', { responseType: 'blob' }),
 };
 
 // Folder API

@@ -3,6 +3,7 @@ import { X, Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
 import Papa from 'papaparse';
 import { format } from 'date-fns';
 import { useData } from '../../contexts/DataContext';
+import { transactionAPI } from '../../services/api';
 
 export default function ImportCSVModal({ onClose }) {
   const [file, setFile] = useState(null);
@@ -41,7 +42,7 @@ export default function ImportCSVModal({ onClose }) {
     });
   };
 
-  const handleImport = () => {
+  const handleImport = async () => {
     if (!file) {
       setError('Please select a file');
       return;
@@ -50,46 +51,22 @@ export default function ImportCSVModal({ onClose }) {
     setImporting(true);
     setError('');
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: async (results) => {
-        let imported = 0;
-        let failed = 0;
-
-        for (const row of results.data) {
-          try {
-            // Expected CSV format: date, description, amount, category, type
-            const transaction = {
-              type: row.type?.toLowerCase() || 'expense',
-              amount: parseFloat(row.amount),
-              description: row.description || 'Imported transaction',
-              category: row.category || 'Other',
-              date: row.date ? new Date(row.date) : new Date()
-            };
-
-            // Validate
-            if (isNaN(transaction.amount) || transaction.amount <= 0) {
-              failed++;
-              continue;
-            }
-
-            await addTransaction(transaction);
-            imported++;
-          } catch (err) {
-            console.error('Import error:', err);
-            failed++;
-          }
-        }
-
-        setResult({ imported, failed, total: results.data.length });
-        setImporting(false);
-      },
-      error: (error) => {
-        setError('Import failed: ' + error.message);
-        setImporting(false);
+    try {
+      // Upload to backend
+      const response = await transactionAPI.importCSV(file);
+      
+      if (response.data.success) {
+        const { imported, failed, total } = response.data.data;
+        setResult({ imported, failed, total });
+      } else {
+        setError(response.data.message || 'Import failed');
       }
-    });
+    } catch (err) {
+      console.error('Import error:', err);
+      setError(err.response?.data?.message || 'Failed to import CSV file');
+    } finally {
+      setImporting(false);
+    }
   };
 
   const downloadTemplate = () => {
