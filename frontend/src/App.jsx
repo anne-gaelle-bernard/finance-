@@ -6,12 +6,14 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
 import ProtectedRoute from './components/ProtectedRoute'
+import InstallPWA from './components/InstallPWA'
 
 function App() {
   return (
     <Router>
       <AuthProvider>
         <DataProvider>
+          <InstallPWA />
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
