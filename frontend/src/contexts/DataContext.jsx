@@ -21,34 +21,54 @@ export const DataProvider = ({ children }) => {
   const [notes, setNotes] = useState([])
   const [loading, setLoading] = useState(false)
 
+  const withId = (item) => {
+    if (!item || typeof item !== 'object') return item
+    return { ...item, id: item.id || item._id }
+  }
+
+  const normalizeList = (list) => (Array.isArray(list) ? list.map(withId) : [])
+
+  const getUserKey = () => currentUser?.email || 'guest'
+
+  const loadFromLocal = () => {
+    const userKey = getUserKey()
+    setTransactions(JSON.parse(localStorage.getItem(`${userKey}_transactions`)) || [])
+    setFolders(JSON.parse(localStorage.getItem(`${userKey}_folders`)) || [])
+    setGoals(JSON.parse(localStorage.getItem(`${userKey}_goals`)) || [])
+    setReminders(JSON.parse(localStorage.getItem(`${userKey}_reminders`)) || [])
+    setNotes(JSON.parse(localStorage.getItem(`${userKey}_notes`)) || [])
+  }
+
+  const saveToLocal = (key, value) => {
+    const userKey = getUserKey()
+    localStorage.setItem(`${userKey}_${key}`, JSON.stringify(value))
+  }
+
   // Fetch all data from backend
   const fetchAllData = async () => {
-    if (!currentUser || !localStorage.getItem('token')) {
-      // If no token, use localStorage fallback
-      const userKey = currentUser?.email || 'guest'
-      setTransactions(JSON.parse(localStorage.getItem(`${userKey}_transactions`)) || [])
-      setFolders(JSON.parse(localStorage.getItem(`${userKey}_folders`)) || [])
-      setGoals(JSON.parse(localStorage.getItem(`${userKey}_goals`)) || [])
-      setReminders(JSON.parse(localStorage.getItem(`${userKey}_reminders`)) || [])
-      setNotes(JSON.parse(localStorage.getItem(`${userKey}_notes`)) || [])
+    if (!currentUser) return
+
+    const token = localStorage.getItem('token')
+    if (!token) {
+      loadFromLocal()
       return
     }
 
     setLoading(true)
     try {
       const [transRes, folderRes, goalRes, reminderRes, noteRes] = await Promise.all([
-        transactionAPI.getAll().catch(() => ({ data: { data: [] } })),
-        folderAPI.getAll().catch(() => ({ data: { data: [] } })),
-        goalAPI.getAll().catch(() => ({ data: { data: [] } })),
-        reminderAPI.getAll().catch(() => ({ data: { data: [] } })),
-        noteAPI.getAll().catch(() => ({ data: { data: [] } }))
+        transactionAPI.getAll().catch(() => ({ success: true, data: [] })),
+        folderAPI.getAll().catch(() => ({ success: true, data: [] })),
+        goalAPI.getAll().catch(() => ({ success: true, data: [] })),
+        reminderAPI.getAll().catch(() => ({ success: true, data: [] })),
+        noteAPI.getAll().catch(() => ({ success: true, data: [] }))
       ])
 
-      setTransactions(transRes.data.data || [])
-      setFolders(folderRes.data.data || [])
-      setGoals(goalRes.data.data || [])
-      setReminders(reminderRes.data.data || [])
-      setNotes(noteRes.data.data || [])
+      setTransactions(normalizeList(transRes.data))
+      setFolders(normalizeList(folderRes.data))
+      setGoals(normalizeList(goalRes.data))
+      setReminders(normalizeList(reminderRes.data))
+      setNotes(normalizeList(noteRes.data))
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
@@ -71,21 +91,23 @@ export const DataProvider = ({ children }) => {
 
   // Transaction operations
   const addTransaction = async (transaction) => {
-    if (!localStorage.getItem('token')) {
-      // Fallback to localStorage
+    const token = localStorage.getItem('token')
+    if (!token) {
       const newTransaction = {
         ...transaction,
         id: Date.now().toString(),
         date: transaction.date || new Date().toISOString().split('T')[0]
       }
-      setTransactions([newTransaction, ...transactions])
+      const next = [newTransaction, ...transactions]
+      setTransactions(next)
+      saveToLocal('transactions', next)
       return
     }
 
     try {
       const response = await transactionAPI.create(transaction)
-      if (response.data.success) {
-        setTransactions([response.data.data, ...transactions])
+      if (response.success) {
+        setTransactions([withId(response.data), ...transactions])
       }
     } catch (error) {
       console.error('Error adding transaction:', error)
@@ -94,8 +116,11 @@ export const DataProvider = ({ children }) => {
   }
 
   const deleteTransaction = async (id) => {
-    if (!localStorage.getItem('token')) {
-      setTransactions(transactions.filter(t => t.id !== id))
+    const token = localStorage.getItem('token')
+    if (!token) {
+      const next = transactions.filter(t => t.id !== id)
+      setTransactions(next)
+      saveToLocal('transactions', next)
       return
     }
 
@@ -110,20 +135,23 @@ export const DataProvider = ({ children }) => {
 
   // Goal operations
   const addGoal = async (goal) => {
-    if (!localStorage.getItem('token')) {
+    const token = localStorage.getItem('token')
+    if (!token) {
       const newGoal = {
         ...goal,
         id: Date.now().toString(),
         currentAmount: goal.currentAmount || 0
       }
-      setGoals([...goals, newGoal])
+      const next = [...goals, newGoal]
+      setGoals(next)
+      saveToLocal('goals', next)
       return
     }
 
     try {
       const response = await goalAPI.create(goal)
-      if (response.data.success) {
-        setGoals([...goals, response.data.data])
+      if (response.success) {
+        setGoals([...goals, withId(response.data)])
       }
     } catch (error) {
       console.error('Error adding goal:', error)
@@ -132,15 +160,18 @@ export const DataProvider = ({ children }) => {
   }
 
   const updateGoal = async (id, updates) => {
-    if (!localStorage.getItem('token')) {
-      setGoals(goals.map(g => g.id === id ? { ...g, ...updates } : g))
+    const token = localStorage.getItem('token')
+    if (!token) {
+      const next = goals.map(g => g.id === id ? { ...g, ...updates } : g)
+      setGoals(next)
+      saveToLocal('goals', next)
       return
     }
 
     try {
       const response = await goalAPI.update(id, updates)
-      if (response.data.success) {
-        setGoals(goals.map(g => (g._id === id || g.id === id) ? response.data.data : g))
+      if (response.success) {
+        setGoals(goals.map(g => (g._id === id || g.id === id) ? withId(response.data) : g))
       }
     } catch (error) {
       console.error('Error updating goal:', error)
@@ -149,8 +180,11 @@ export const DataProvider = ({ children }) => {
   }
 
   const deleteGoal = async (id) => {
-    if (!localStorage.getItem('token')) {
-      setGoals(goals.filter(g => g.id !== id))
+    const token = localStorage.getItem('token')
+    if (!token) {
+      const next = goals.filter(g => g.id !== id)
+      setGoals(next)
+      saveToLocal('goals', next)
       return
     }
 
@@ -165,19 +199,22 @@ export const DataProvider = ({ children }) => {
 
   // Reminder operations
   const addReminder = async (reminder) => {
-    if (!localStorage.getItem('token')) {
+    const token = localStorage.getItem('token')
+    if (!token) {
       const newReminder = {
         ...reminder,
         id: Date.now().toString()
       }
-      setReminders([...reminders, newReminder])
+      const next = [...reminders, newReminder]
+      setReminders(next)
+      saveToLocal('reminders', next)
       return
     }
 
     try {
       const response = await reminderAPI.create(reminder)
-      if (response.data.success) {
-        setReminders([...reminders, response.data.data])
+      if (response.success) {
+        setReminders([...reminders, withId(response.data)])
       }
     } catch (error) {
       console.error('Error adding reminder:', error)
@@ -186,8 +223,11 @@ export const DataProvider = ({ children }) => {
   }
 
   const deleteReminder = async (id) => {
-    if (!localStorage.getItem('token')) {
-      setReminders(reminders.filter(r => r.id !== id))
+    const token = localStorage.getItem('token')
+    if (!token) {
+      const next = reminders.filter(r => r.id !== id)
+      setReminders(next)
+      saveToLocal('reminders', next)
       return
     }
 
@@ -202,20 +242,23 @@ export const DataProvider = ({ children }) => {
 
   // Note operations
   const addNote = async (note) => {
-    if (!localStorage.getItem('token')) {
+    const token = localStorage.getItem('token')
+    if (!token) {
       const newNote = {
         ...note,
         id: Date.now().toString(),
         createdAt: new Date().toISOString()
       }
-      setNotes([newNote, ...notes])
+      const next = [newNote, ...notes]
+      setNotes(next)
+      saveToLocal('notes', next)
       return
     }
 
     try {
       const response = await noteAPI.create(note)
-      if (response.data.success) {
-        setNotes([response.data.data, ...notes])
+      if (response.success) {
+        setNotes([withId(response.data), ...notes])
       }
     } catch (error) {
       console.error('Error adding note:', error)
@@ -224,15 +267,18 @@ export const DataProvider = ({ children }) => {
   }
 
   const updateNote = async (id, updates) => {
-    if (!localStorage.getItem('token')) {
-      setNotes(notes.map(n => n.id === id ? { ...n, ...updates } : n))
+    const token = localStorage.getItem('token')
+    if (!token) {
+      const next = notes.map(n => n.id === id ? { ...n, ...updates } : n)
+      setNotes(next)
+      saveToLocal('notes', next)
       return
     }
 
     try {
       const response = await noteAPI.update(id, updates)
-      if (response.data.success) {
-        setNotes(notes.map(n => (n._id === id || n.id === id) ? response.data.data : n))
+      if (response.success) {
+        setNotes(notes.map(n => (n._id === id || n.id === id) ? withId(response.data) : n))
       }
     } catch (error) {
       console.error('Error updating note:', error)
@@ -241,8 +287,11 @@ export const DataProvider = ({ children }) => {
   }
 
   const deleteNote = async (id) => {
-    if (!localStorage.getItem('token')) {
-      setNotes(notes.filter(n => n.id !== id))
+    const token = localStorage.getItem('token')
+    if (!token) {
+      const next = notes.filter(n => n.id !== id)
+      setNotes(next)
+      saveToLocal('notes', next)
       return
     }
 
@@ -257,21 +306,24 @@ export const DataProvider = ({ children }) => {
 
   // Folder operations
   const addFolder = async (folder) => {
-    if (!localStorage.getItem('token')) {
+    const token = localStorage.getItem('token')
+    if (!token) {
       const newFolder = {
         ...folder,
         id: Date.now().toString(),
         receipts: [],
         totalAmount: 0
       }
-      setFolders([...folders, newFolder])
+      const next = [...folders, newFolder]
+      setFolders(next)
+      saveToLocal('folders', next)
       return
     }
 
     try {
       const response = await folderAPI.create(folder)
-      if (response.data.success) {
-        setFolders([...folders, response.data.data])
+      if (response.success) {
+        setFolders([...folders, withId(response.data)])
       }
     } catch (error) {
       console.error('Error adding folder:', error)
@@ -280,8 +332,11 @@ export const DataProvider = ({ children }) => {
   }
 
   const deleteFolder = async (id) => {
-    if (!localStorage.getItem('token')) {
-      setFolders(folders.filter(f => f.id !== id))
+    const token = localStorage.getItem('token')
+    if (!token) {
+      const next = folders.filter(f => f.id !== id)
+      setFolders(next)
+      saveToLocal('folders', next)
       return
     }
 
@@ -294,38 +349,70 @@ export const DataProvider = ({ children }) => {
     }
   }
 
-  const addReceiptToFolder = (folderId, receipt) => {
-    setFolders(folders.map(folder => {
-      if (folder.id === folderId || folder._id === folderId) {
-        const newReceipt = {
-          ...receipt,
-          id: Date.now().toString()
+  const addReceiptToFolder = async (folderId, receipt) => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      const next = folders.map(folder => {
+        if (folder.id === folderId || folder._id === folderId) {
+          const newReceipt = {
+            ...receipt,
+            id: Date.now().toString()
+          }
+          const updatedReceipts = [...(folder.receipts || []), newReceipt]
+          const totalAmount = updatedReceipts.reduce((sum, r) => sum + parseFloat(r.amount || 0), 0)
+          return {
+            ...folder,
+            receipts: updatedReceipts,
+            totalAmount
+          }
         }
-        const updatedReceipts = [...(folder.receipts || []), newReceipt]
-        const totalAmount = updatedReceipts.reduce((sum, r) => sum + parseFloat(r.amount || 0), 0)
-        return {
-          ...folder,
-          receipts: updatedReceipts,
-          totalAmount
-        }
+        return folder
+      })
+      setFolders(next)
+      saveToLocal('folders', next)
+      return
+    }
+
+    try {
+      const response = await folderAPI.addReceipt(folderId, receipt)
+      if (response.success) {
+        setFolders(folders.map(f => (f._id === folderId || f.id === folderId) ? withId(response.data) : f))
       }
-      return folder
-    }))
+    } catch (error) {
+      console.error('Error adding receipt:', error)
+      throw error
+    }
   }
 
-  const deleteReceiptFromFolder = (folderId, receiptId) => {
-    setFolders(folders.map(folder => {
-      if (folder.id === folderId || folder._id === folderId) {
-        const updatedReceipts = folder.receipts.filter(r => r.id !== receiptId && r._id !== receiptId)
-        const totalAmount = updatedReceipts.reduce((sum, r) => sum + parseFloat(r.amount || 0), 0)
-        return {
-          ...folder,
-          receipts: updatedReceipts,
-          totalAmount
+  const deleteReceiptFromFolder = async (folderId, receiptId) => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      const next = folders.map(folder => {
+        if (folder.id === folderId || folder._id === folderId) {
+          const updatedReceipts = folder.receipts.filter(r => r.id !== receiptId && r._id !== receiptId)
+          const totalAmount = updatedReceipts.reduce((sum, r) => sum + parseFloat(r.amount || 0), 0)
+          return {
+            ...folder,
+            receipts: updatedReceipts,
+            totalAmount
+          }
         }
+        return folder
+      })
+      setFolders(next)
+      saveToLocal('folders', next)
+      return
+    }
+
+    try {
+      const response = await folderAPI.deleteReceipt(folderId, receiptId)
+      if (response.success) {
+        setFolders(folders.map(f => (f._id === folderId || f.id === folderId) ? withId(response.data) : f))
       }
-      return folder
-    }))
+    } catch (error) {
+      console.error('Error deleting receipt:', error)
+      throw error
+    }
   }
 
   const value = {
