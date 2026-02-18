@@ -2,19 +2,20 @@
 
 [variables]
 NODE_ENV = "production"
+NPM_CONFIG_PRODUCTION = "true"
 
 [phases.setup]
-nixPkgs = ["nodejs-18_x"]
+nixPkgs = ["nodejs-18_x", "npm"]
 
 [phases.install]
 dependsOn = ["setup"]
 cmds = [
-  "cd backend && npm ci --omit=dev"
+  "cd backend && npm ci"
 ]
 
 [phases.build]
 dependsOn = ["install"]
-cmds = ["echo 'No build step required for backend'"]
+cmds = ["echo 'Backend production build ready'"]
 
 [start]
 cmd = "cd backend && node server.js"
