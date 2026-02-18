@@ -48,11 +48,11 @@ router.post('/register', async (req, res) => {
       message: 'User registered successfully',
       token,
       user: {
-        id: user.id,
+        id: user._id,
         name: user.name,
         email: user.email,
-        currency: user.currency,
-        theme: user.theme
+        currency: user.preferences.currency,
+        theme: user.preferences.theme
       }
     });
   } catch (error) {
@@ -107,11 +107,11 @@ router.post('/login', async (req, res) => {
       message: 'Login successful',
       token,
       user: {
-        id: user.id,
+        id: user._id,
         name: user.name,
         email: user.email,
-        currency: user.currency,
-        theme: user.theme
+        currency: user.preferences.currency,
+        theme: user.preferences.theme
       }
     });
   } catch (error) {
