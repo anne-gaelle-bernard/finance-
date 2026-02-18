@@ -97,6 +97,14 @@ export const folderAPI = {
     const response = await api.delete(`/folders/${id}`);
     return response.data;
   },
+  addReceipt: async (folderId, receipt) => {
+    const response = await api.post(`/folders/${folderId}/receipts`, receipt);
+    return response.data;
+  },
+  deleteReceipt: async (folderId, receiptId) => {
+    const response = await api.delete(`/folders/${folderId}/receipts/${receiptId}`);
+    return response.data;
+  },
 };
 
 // Goal API

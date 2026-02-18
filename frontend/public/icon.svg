@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Finance Tracker">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ec4899"/>
+      <stop offset="1" stop-color="#a855f7"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#g)"/>
+  <path fill="#ffffff" d="M160 196c0-10 8-18 18-18h156c10 0 18 8 18 18s-8 18-18 18H178c-10 0-18-8-18-18zm0 60c0-10 8-18 18-18h96c10 0 18 8 18 18s-8 18-18 18h-96c-10 0-18-8-18-18zm0 60c0-10 8-18 18-18h156c10 0 18 8 18 18s-8 18-18 18H178c-10 0-18-8-18-18z"/>
+  <path fill="#ffffff" opacity="0.95" d="M348 320a44 44 0 1 1 0-88 44 44 0 0 1 0 88zm0-20a24 24 0 1 0 0-48 24 24 0 0 0 0 48z"/>
+</svg>

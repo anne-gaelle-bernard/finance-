@@ -57,10 +57,10 @@ router.put('/:id', auth, async (req, res) => {
 });
 
 // Delete transaction
-router.delete('/:id', auth, (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
   try {
-    const deleted = db.deleteTransaction(req.params.id, req.userId);
-    if (!deleted) {
+    const transaction = await Transaction.findOneAndDelete({ _id: req.params.id, userId: req.userId });
+    if (!transaction) {
       return res.status(404).json({ success: false, message: 'Transaction not found' });
     }
     res.json({ success: true, message: 'Transaction deleted' });
