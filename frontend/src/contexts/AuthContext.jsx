@@ -30,7 +30,14 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await authAPI.login({ email, password })
+      const trimmedEmail = email.trim().toLowerCase()
+      const trimmedPassword = password.trim()
+
+      if (!trimmedEmail || !trimmedPassword) {
+        return { success: false, message: 'Veuillez saisir un email et un mot de passe.' }
+      }
+
+      const response = await authAPI.login({ email: trimmedEmail, password: trimmedPassword })
       
       if (response.token && response.user) {
         // Store token and user data
@@ -53,7 +60,19 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, password) => {
     try {
-      const response = await authAPI.register({ name, email, password })
+      const trimmedName = name.trim()
+      const trimmedEmail = email.trim().toLowerCase()
+      const trimmedPassword = password.trim()
+
+      if (!trimmedName || !trimmedEmail || !trimmedPassword) {
+        return { success: false, message: 'Veuillez remplir tous les champs.' }
+      }
+
+      if (trimmedPassword.length < 6) {
+        return { success: false, message: 'Le mot de passe doit contenir au moins 6 caractères.' }
+      }
+
+      const response = await authAPI.register({ name: trimmedName, email: trimmedEmail, password: trimmedPassword })
       
       if (response.token && response.user) {
         // Store token and user data
@@ -69,7 +88,7 @@ export const AuthProvider = ({ children }) => {
       console.error('Register error:', error)
       return { 
         success: false, 
-        message: error.response?.data?.message || 'Cet email est déjà utilisé' 
+        message: error.response?.data?.message || error.message || 'Une erreur est survenue lors de la création du compte.' 
       }
     }
   }
