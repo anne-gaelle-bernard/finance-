@@ -118,7 +118,7 @@ export const DataProvider = ({ children }) => {
   const deleteTransaction = async (id) => {
     const token = localStorage.getItem('token')
     if (!token) {
-      const next = transactions.filter(t => t.id !== id)
+      const next = transactions.filter(t => t.id !== id && t._id !== id)
       setTransactions(next)
       saveToLocal('transactions', next)
       return
@@ -182,7 +182,7 @@ export const DataProvider = ({ children }) => {
   const deleteGoal = async (id) => {
     const token = localStorage.getItem('token')
     if (!token) {
-      const next = goals.filter(g => g.id !== id)
+      const next = goals.filter(g => g.id !== id && g._id !== id)
       setGoals(next)
       saveToLocal('goals', next)
       return
@@ -225,7 +225,7 @@ export const DataProvider = ({ children }) => {
   const deleteReminder = async (id) => {
     const token = localStorage.getItem('token')
     if (!token) {
-      const next = reminders.filter(r => r.id !== id)
+      const next = reminders.filter(r => r.id !== id && r._id !== id)
       setReminders(next)
       saveToLocal('reminders', next)
       return
@@ -289,7 +289,7 @@ export const DataProvider = ({ children }) => {
   const deleteNote = async (id) => {
     const token = localStorage.getItem('token')
     if (!token) {
-      const next = notes.filter(n => n.id !== id)
+      const next = notes.filter(n => n.id !== id && n._id !== id)
       setNotes(next)
       saveToLocal('notes', next)
       return
@@ -334,7 +334,7 @@ export const DataProvider = ({ children }) => {
   const deleteFolder = async (id) => {
     const token = localStorage.getItem('token')
     if (!token) {
-      const next = folders.filter(f => f.id !== id)
+      const next = folders.filter(f => f.id !== id && f._id !== id)
       setFolders(next)
       saveToLocal('folders', next)
       return

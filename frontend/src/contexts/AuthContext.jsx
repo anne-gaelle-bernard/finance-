@@ -51,6 +51,14 @@ export const AuthProvider = ({ children }) => {
       return { success: false, message: 'Erreur de connexion' }
     } catch (error) {
       console.error('Login error:', error)
+      
+      // Distinguish network/CORS errors from auth errors
+      if (!error.response) {
+        return { 
+          success: false, 
+          message: 'Impossible de contacter le serveur. Vérifiez votre connexion internet.' 
+        }
+      }
       return { 
         success: false, 
         message: error.response?.data?.message || 'Email ou mot de passe incorrect' 
