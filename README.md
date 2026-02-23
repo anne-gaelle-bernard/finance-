@@ -185,17 +185,80 @@ npm run dev      # Démarre le serveur avec nodemon
 npm start        # Démarre le serveur en production
 ```
 
-## 📦 Déploiement
+## 📦 Déploiement en Production
 
-### Frontend (Vercel/Netlify)
-1. Build de production: `npm run build`
-2. Déployer le dossier `dist/`
+### 🚀 Déploiement Railway (Backend) + Vercel (Frontend)
 
-### Backend (Railway/Render/Heroku)
-1. Configurer les variables d'environnement
-2. Déployer depuis GitHub ou CLI
+Pour un déploiement complet avec base de données, voir **[DEPLOYMENT_COMPLETE.md](./DEPLOYMENT_COMPLETE.md)**
 
-## 📄 License
+#### Étapes rapides:
+
+**1. Backend sur Railway**
+- Connecter votre repo GitHub à Railway
+- Ajouter les variables d'environnement:
+  - `MONGODB_URI` (URI MongoDB)
+  - `JWT_SECRET` (clé secrète)
+  - `CLIENT_URL` (URL du frontend Vercel)
+  - `NODE_ENV=production`
+- Railway déploie automatiquement via git push
+
+**2. Frontend sur Vercel**
+- Importer le dossier `frontend` sur Vercel
+- Ajouter `VITE_API_URL` pointant vers votre backend Railway
+- Vercel déploie automatiquement via git push
+
+**3. Mettre à jour CORS**
+- Dans Railway, mettre à jour `CLIENT_URL` avec votre domaine Vercel final
+- Le backend redémarrera automatiquement
+
+### Test en Production
+```bash
+# Vérifier la santé du backend
+curl https://votre-projet.up.railway.app/api/health
+
+# Accès au frontend
+https://votre-app.vercel.app
+```
+
+## 🔧 Variables d'Environnement
+
+### Backend (.env)
+```
+PORT=5000
+NODE_ENV=development
+JWT_SECRET=votre_cle_secrete_ici
+MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/db
+CLIENT_URL=http://localhost:3000
+```
+
+### Frontend (.env)
+```
+VITE_API_URL=http://localhost:5000/api
+```
+
+### Frontend Production (.env.production)
+```
+VITE_API_URL=https://votre-backend.up.railway.app/api
+```
+
+## 🐛 Dépannage
+
+### Frontend ne peut pas se connecter à l'API
+- Vérifier `VITE_API_URL` 
+- Confirmer que le backend est accessible
+- Vérifier la configuration CORS en backend
+
+### Erreur de connexion base de données
+- Vérifier `MONGODB_URI`
+- Confirmer les identifiants MongoDB
+- Vérifier la whitelist IP dans MongoDB Atlas
+
+### Authentification ne fonctionne pas
+- Vérifier que `JWT_SECRET` est défini
+- Vérifier la connexion à MongoDB
+- Consulter les logs Railway/Vercel
+
+## 📄 Licence
 
 MIT
 
