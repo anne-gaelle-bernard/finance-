@@ -90,12 +90,19 @@ app.get('/', (req, res) => {
 // Health check
 app.get('/api/health', (req, res) => {
   const mongoose = require('mongoose');
-  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  const dbStates = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
+  const dbStatus = dbStates[mongoose.connection.readyState] || 'unknown';
   
   res.json({ 
     status: 'OK', 
     message: 'Finance Tracker API is running',
     database: dbStatus,
+    environment: {
+      mongodbUri: !!process.env.MONGODB_URI,
+      jwtSecret: !!process.env.JWT_SECRET,
+      clientUrl: process.env.CLIENT_URL || 'not set',
+      nodeEnv: process.env.NODE_ENV || 'not set',
+    },
     timestamp: new Date().toISOString()
   });
 });
