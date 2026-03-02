@@ -18,7 +18,6 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
   'https://finance-tracker-one-gamma.vercel.app',
-  'https://finance-tracker-kxwlzysv9-anne-gaelle-bernards-projects.vercel.app',
   process.env.CLIENT_URL,
 ].filter(Boolean);
 
@@ -26,11 +25,16 @@ const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
+    
+    // Check if origin is in allowedOrigins or matches Vercel preview URLs
+    if (
+      allowedOrigins.includes(origin) ||
+      /^https:\/\/finance-tracker-.*-anne-gaelle-bernards-projects\.vercel\.app$/.test(origin)
+    ) {
       callback(null, true);
     } else {
       console.log('CORS blocked origin:', origin);
-      callback(null, true); // Allow all origins in case CLIENT_URL is misconfigured
+      callback(null, true); // Allow all origins for now to fix issues
     }
   },
   credentials: true,

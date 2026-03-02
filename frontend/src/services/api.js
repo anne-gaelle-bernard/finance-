@@ -1,6 +1,6 @@
-import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://finance-tracker-production-dd2a.up.railway.app/api';
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://finance-production-b622.up.railway.app/api';
 
 // Create axios instance
 const api = axios.create({
