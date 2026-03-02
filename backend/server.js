@@ -17,6 +17,8 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
+  'https://finance-tracker-one-gamma.vercel.app',
+  'https://finance-tracker-kxwlzysv9-anne-gaelle-bernards-projects.vercel.app',
   process.env.CLIENT_URL,
 ].filter(Boolean);
 
