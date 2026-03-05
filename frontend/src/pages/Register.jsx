@@ -40,7 +40,7 @@ const Register = () => {
     <div className="min-h-screen flex items-center justify-center p-3 sm:p-4">
       <div className="glass-card rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md w-full">
         <div className="text-center mb-6 sm:mb-8">
-                    <div className="text-4xl sm:text-5xl mb-3 sm:mb-4"><img src="/icon.svg" alt="Finance Tracker" className="w-16 h-16 sm:w-20 sm:h-20 mx-auto" /></div>
+                              <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">💸</div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Finance Tracker</h1>
           <p className="text-sm sm:text-base text-gray-600">Créez votre compte</p>
         </div>
