@@ -1,7 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const bodyParser = require('body-parser');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 
 // Load environment variables
@@ -13,41 +15,80 @@ connectDB();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS configuration for production
+// ============================================================
+// SECURITY MIDDLEWARE
+// ============================================================
+
+// 1. Helmet - HTTP security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
+
+// 2. CORS - Strict origin whitelist
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
-  'https://finance-tracker-one-gamma.vercel.app',
-    'https://finance-gazy.vercel.app',
+  'https://finance-gazy.vercel.app',
   process.env.CLIENT_URL,
 ].filter(Boolean);
 
-const corsOptions = {
+app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
+    // Allow requests with no origin (native mobile apps)
     if (!origin) return callback(null, true);
-    
-    // Check if origin is in allowedOrigins or matches Vercel preview URLs
     if (
       allowedOrigins.includes(origin) ||
-      /^https:\/\/finance-tracker-.*-anne-gaelle-bernards-projects\.vercel\.app$/.test(origin)
+      /^https:\/\/finance-gazy-.*-anne-gaelle-bernards-projects\.vercel\.app$/.test(origin)
     ) {
       callback(null, true);
     } else {
-      console.log('CORS blocked origin:', origin);
-      callback(null, true); // Allow all origins for now to fix issues
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
-  optionsSuccessStatus: 200
-};
+  optionsSuccessStatus: 200,
+}));
 
-// Middleware
-app.use(cors(corsOptions));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// 3. Body size limit - prevent DoS via large payloads
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
-// Routes
+// 4. MongoDB injection sanitization
+app.use(mongoSanitize());
+
+// 5. Rate limiting - global
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Trop de requ\u00eates, r\u00e9essayez dans 15 minutes.' },
+});
+app.use('/api/', globalLimiter);
+
+// 6. Rate limiting - auth routes (strict anti brute-force)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Trop de tentatives de connexion. Attendez 15 minutes.' },
+  skipSuccessfulRequests: true,
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+
+// ============================================================
+// ROUTES
+// ============================================================
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/import', require('./routes/import'));
@@ -57,75 +98,48 @@ app.use('/api/reminders', require('./routes/reminders'));
 app.use('/api/notes', require('./routes/notes'));
 app.use('/api/user', require('./routes/user'));
 
-// Root route - HTML welcome page
+// Root route
 app.get('/', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Finance Tracker API</title>
-      <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
-        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: #2563eb; }
-        .endpoint { background: #f0f9ff; padding: 10px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #2563eb; }
-        .status { color: #16a34a; font-weight: bold; }
-        code { background: #e5e7eb; padding: 2px 6px; border-radius: 3px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <h1>💰 Finance Tracker API</h1>
-        <p class="status">✅ Status: Running</p>
-        <p>Version: 1.0.0</p>
-        <h2>Available Endpoints:</h2>
-        <div class="endpoint"><strong>GET</strong> <code>/api/health</code> - Health check</div>
-        <div class="endpoint"><strong>POST</strong> <code>/api/auth/register</code> - Register user</div>
-        <div class="endpoint"><strong>POST</strong> <code>/api/auth/login</code> - Login user</div>
-        <div class="endpoint"><strong>GET</strong> <code>/api/transactions</code> - Get transactions</div>
-        <div class="endpoint"><strong>GET</strong> <code>/api/folders</code> - Get folders</div>
-        <div class="endpoint"><strong>GET</strong> <code>/api/goals</code> - Get goals</div>
-        <div class="endpoint"><strong>GET</strong> <code>/api/reminders</code> - Get reminders</div>
-        <div class="endpoint"><strong>GET</strong> <code>/api/notes</code> - Get notes</div>
-        <div class="endpoint"><strong>GET</strong> <code>/api/user</code> - Get user profile</div>
-      </div>
-    </body>
-    </html>
-  `);
+  res.json({ status: 'OK', message: 'Finance Tracker API' });
 });
 
-// Health check
+// Health check - informations minimales (pas de donn\u00e9es sensibles)
 app.get('/api/health', (req, res) => {
   const mongoose = require('mongoose');
-  const dbStates = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
-  const dbStatus = dbStates[mongoose.connection.readyState] || 'unknown';
-  
-  res.json({ 
-    status: 'OK', 
-    message: 'Finance Tracker API is running',
-    database: dbStatus,
-    environment: {
-      mongodbUri: !!process.env.MONGODB_URI,
-      jwtSecret: !!process.env.JWT_SECRET,
-      clientUrl: process.env.CLIENT_URL || 'not set',
-      nodeEnv: process.env.NODE_ENV || 'not set',
-    },
-    timestamp: new Date().toISOString()
+  const isConnected = mongoose.connection.readyState === 1;
+  res.json({
+    status: isConnected ? 'OK' : 'DEGRADED',
+    database: isConnected ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString(),
   });
 });
 
-// Error handling middleware
+// ============================================================
+// ERROR HANDLING
+// ============================================================
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: 'Route not found' });
+});
+
+// Global error handler - ne jamais exposer les d\u00e9tails d'erreur en production
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ 
-    success: false, 
-    message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  // CORS error
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({ success: false, message: 'CORS: origine non autoris\u00e9e' });
+  }
+
+  console.error('[ERROR]', err.message);
+
+  const isDev = process.env.NODE_ENV === 'development';
+  res.status(err.status || 500).json({
+    success: false,
+    message: isDev ? err.message : 'Une erreur interne est survenue.',
   });
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV}`);
-  console.log(`CORS Origin: ${process.env.CLIENT_URL || 'http://localhost:3000'}`);
+  console.log(`\ud83d\ude80 Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
