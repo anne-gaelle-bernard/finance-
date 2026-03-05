@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { Download } from 'lucide-react'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -8,16 +9,42 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
   const { login } = useAuth()
+  const [deferredPrompt, setDeferredPrompt] = useState(null)
+  const [isInstalled, setIsInstalled] = useState(false)
+
+  useEffect(() => {
+    const alreadyInstalled =
+      window.matchMedia?.('(display-mode: standalone)')?.matches ||
+      window.navigator?.standalone === true
+    if (alreadyInstalled) setIsInstalled(true)
+
+    const handler = (e) => {
+      e.preventDefault()
+      setDeferredPrompt(e)
+    }
+    window.addEventListener('beforeinstallprompt', handler)
+    window.addEventListener('appinstalled', () => setIsInstalled(true))
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return
+    deferredPrompt.prompt()
+    const { outcome } = await deferredPrompt.userChoice
+    if (outcome === 'accepted') setIsInstalled(true)
+    setDeferredPrompt(null)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setMessage({ type: '', text: '' })
     const result = await login(email, password)
-    
     if (!result.success) {
       setMessage({ type: 'error', text: result.message })
     }
   }
+
+  const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent)
 
   return (
     <div className="min-h-screen flex items-center justify-center p-3 sm:p-4">
@@ -69,28 +96,49 @@ const Login = () => {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
-                <i className={`fas fa-eye${showPassword ? '-slash' : ''}`}></i>
+                <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
               </button>
             </div>
           </div>
 
           <button
             type="submit"
-            className="w-full btn py-3 text-lg"
+            className="w-full btn-primary py-3 rounded-lg font-semibold text-lg"
           >
-            <i className="fas fa-sign-in-alt mr-2"></i>
-            Se connecter
+            <i className="fas fa-sign-in-alt mr-2"></i>Se connecter
           </button>
         </form>
 
-        <div className="mt-6 text-center">
-          <p className="text-gray-600">
-            Pas encore de compte?{' '}
-            <Link to="/register" className="text-pink-600 hover:text-pink-700 font-semibold">
-              Inscrivez-vous
-            </Link>
-          </p>
-        </div>
+        <p className="text-center text-gray-600 mt-6">
+          Pas encore de compte?{' '}
+          <Link to="/register" className="text-pink-500 font-semibold hover:text-pink-700">
+            Inscrivez-vous
+          </Link>
+        </p>
+
+        {!isInstalled && (
+          <div className="mt-6 pt-6 border-t border-gray-100">
+            {deferredPrompt ? (
+              <button
+                onClick={handleInstall}
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity shadow-lg"
+              >
+                <Download className="w-5 h-5" />
+                Télécharger l’application
+              </button>
+            ) : isIOS ? (
+              <div className="text-center text-sm text-gray-500">
+                <Download className="w-4 h-4 inline mr-1" />
+                Sur iPhone : <strong>Partager</strong> → <strong>Ajouter à l’écran d’accueil</strong>
+              </div>
+            ) : (
+              <div className="text-center text-sm text-gray-500">
+                <Download className="w-4 h-4 inline mr-1" />
+                Installez l’app : menu navigateur → <strong>Installer l’application</strong>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
