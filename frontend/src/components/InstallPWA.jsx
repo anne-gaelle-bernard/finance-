@@ -21,7 +21,6 @@ const InstallPWA = () => {
       setDeferredPrompt(e);
       setShowInstall(true);
     };
-
     window.addEventListener('beforeinstallprompt', handler);
 
     const installedHandler = () => {
@@ -39,14 +38,11 @@ const InstallPWA = () => {
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
-
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    
     if (outcome === 'accepted') {
       console.log('Installation acceptée');
     }
-    
     setDeferredPrompt(null);
     setShowInstall(false);
   };
@@ -63,53 +59,54 @@ const InstallPWA = () => {
   if (dismissed) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-gradient-to-r from-pink-500 to-purple-600 text-white p-4 rounded-lg shadow-2xl z-50 animate-slide-up">
-      <button 
+    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-gradient-to-r from-pink-500 to-purple-600 text-white p-4 rounded-2xl shadow-2xl z-50 animate-slide-up">
+      <button
         onClick={close}
-        className="absolute top-2 right-2 text-white/80 hover:text-white"
+        className="absolute top-2 right-2 text-white/80 hover:text-white text-xl font-bold w-7 h-7 flex items-center justify-center"
+        aria-label="Fermer"
       >
         ×
       </button>
-      
+
       <div className="flex items-start gap-3">
-        <div className="bg-white/20 p-2 rounded-lg">
+        <div className="bg-white/20 p-2 rounded-xl flex-shrink-0">
           <Download className="w-6 h-6" />
         </div>
-        
-        <div className="flex-1">
+
+        <div className="flex-1 pr-4">
           <h3 className="font-bold text-lg mb-1">
             Installer Finance Tracker
           </h3>
           <p className="text-sm text-white/90 mb-3">
-            Accédez rapidement à vos finances depuis votre écran d'accueil.
+            Téléchargez l&apos;application sur votre appareil pour un accès rapide.
           </p>
-          
-          <div className="flex gap-2">
+
+          <div className="flex gap-2 flex-wrap">
             {showInstall && deferredPrompt ? (
               <button
                 onClick={handleInstall}
-                className="bg-white text-pink-600 px-4 py-2 rounded-lg font-semibold hover:bg-pink-50 transition-colors"
+                className="flex items-center gap-2 bg-white text-pink-600 px-4 py-2 rounded-xl font-bold hover:bg-pink-50 transition-colors shadow"
               >
-                Installer
+                <Download className="w-4 h-4" />
+                Télécharger
               </button>
             ) : (
               <div className="text-sm text-white/95 leading-snug">
                 {isIOS && !isStandaloneIOS ? (
                   <>
-                    Sur iPhone/iPad: appuyez sur <strong>Partager</strong> puis{' '}
+                    Sur iPhone/iPad : appuyez sur <strong>Partager</strong> puis{' '}
                     <strong>Ajouter à l’écran d’accueil</strong>.
                   </>
                 ) : (
                   <>
-                    Ouvrez le menu de votre navigateur et choisissez{' '}
-                    <strong>Installer l’application</strong>.
+                    Menu navigateur → <strong>Installer l’application</strong>
                   </>
                 )}
               </div>
             )}
             <button
               onClick={close}
-              className="bg-white/20 px-4 py-2 rounded-lg hover:bg-white/30 transition-colors"
+              className="bg-white/20 px-4 py-2 rounded-xl hover:bg-white/30 transition-colors text-sm"
             >
               Fermer
             </button>
