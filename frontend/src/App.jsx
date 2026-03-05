@@ -7,7 +7,7 @@ import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
 import ProtectedRoute from './components/ProtectedRoute'
 import InstallPWA from './components/InstallPWA'
-
+// Finance Tracker - emoji logo
 function App() {
   return (
     <Router>
