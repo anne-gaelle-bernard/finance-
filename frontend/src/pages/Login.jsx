@@ -44,8 +44,6 @@ const Login = () => {
     }
   }
 
-  const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent)
-
   return (
     <div className="min-h-screen flex items-center justify-center p-3 sm:p-4">
       <div className="glass-card rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md w-full">
@@ -116,27 +114,15 @@ const Login = () => {
           </Link>
         </p>
 
-        {!isInstalled && (
+        {!isInstalled && deferredPrompt && (
           <div className="mt-6 pt-6 border-t border-gray-100">
-            {deferredPrompt ? (
-              <button
-                onClick={handleInstall}
-                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity shadow-lg"
-              >
-                <Download className="w-5 h-5" />
-                Télécharger l’application
-              </button>
-            ) : isIOS ? (
-              <div className="text-center text-sm text-gray-500">
-                <Download className="w-4 h-4 inline mr-1" />
-                Sur iPhone : <strong>Partager</strong> → <strong>Ajouter à l’écran d’accueil</strong>
-              </div>
-            ) : (
-              <div className="text-center text-sm text-gray-500">
-                <Download className="w-4 h-4 inline mr-1" />
-                Installez l’app : menu navigateur → <strong>Installer l’application</strong>
-              </div>
-            )}
+            <button
+              onClick={handleInstall}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity shadow-lg"
+            >
+              <Download className="w-5 h-5" />
+              Télécharger l’application
+            </button>
           </div>
         )}
       </div>
