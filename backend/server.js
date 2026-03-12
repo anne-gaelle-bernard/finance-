@@ -96,7 +96,7 @@ app.use('/api/folders', require('./routes/folders'));
 app.use('/api/goals', require('./routes/goals'));
 app.use('/api/reminders', require('./routes/reminders'));
 app.use('/api/notes', require('./routes/notes'));
-app.use('/api/user', require('./routes/user'));
+app.use('/api/user', require('./routes/user')); app.use('/api/calendrier-course', require('./routes/calendrierCourse'));
 
 // Root route
 app.get('/', (req, res) => {
