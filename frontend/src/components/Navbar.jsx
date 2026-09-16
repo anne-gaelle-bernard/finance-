@@ -26,14 +26,15 @@ const Navbar = ({ userName }) => {
         <div className="bg-amber-400 text-amber-900 text-xs sm:text-sm font-medium text-center py-1.5 px-3 flex items-center justify-center gap-3 flex-wrap">
           <span>
             <i className="fas fa-eye mr-1"></i>
-            Mode visiteur — données de démonstration, lecture seule
+            Mode visiteur, données de démonstration, lecture seule
           </span>
           <button
             onClick={handleResetDemo}
-            className="underline hover:no-underline font-semibold"
+            aria-label="Réinitialiser"
+            title="Réinitialiser"
+            className="hover:opacity-70"
           >
-            <i className="fas fa-rotate-left mr-1"></i>
-            Réinitialiser
+            <i className="fas fa-rotate-left"></i>
           </button>
         </div>
       )}
