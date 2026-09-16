@@ -185,9 +185,9 @@ npm run dev      # Démarre le serveur avec nodemon
 npm start        # Démarre le serveur en production
 ```
 
-## 📦 Déploiement en Production
+##  Déploiement en Production
 
-### 🚀 Déploiement Railway (Backend) + Vercel (Frontend)
+###  Déploiement Railway (Backend) + Vercel (Frontend)
 
 Pour un déploiement complet avec base de données, voir **[DEPLOYMENT_COMPLETE.md](./DEPLOYMENT_COMPLETE.md)**
 
