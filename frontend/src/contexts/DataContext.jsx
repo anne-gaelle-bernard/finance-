@@ -20,6 +20,7 @@ export const DataProvider = ({ children }) => {
   const [reminders, setReminders] = useState([])
   const [notes, setNotes] = useState([])
   const [loading, setLoading] = useState(false)
+  const [monthlyArchive, setMonthlyArchive] = useState([])
 
   const withId = (item) => {
     if (!item || typeof item !== 'object') return item
@@ -76,6 +77,7 @@ export const DataProvider = ({ children }) => {
     setGoals(JSON.parse(localStorage.getItem(`${userKey}_goals`)) || [])
     setReminders(JSON.parse(localStorage.getItem(`${userKey}_reminders`)) || [])
     setNotes(JSON.parse(localStorage.getItem(`${userKey}_notes`)) || [])
+    setMonthlyArchive(JSON.parse(localStorage.getItem(`${userKey}_monthlyArchive`)) || [])
   }
 
   const saveToLocal = (key, value) => {
@@ -91,7 +93,29 @@ export const DataProvider = ({ children }) => {
     localStorage.removeItem(`${userKey}_goals`)
     localStorage.removeItem(`${userKey}_reminders`)
     localStorage.removeItem(`${userKey}_notes`)
+    localStorage.removeItem(`${userKey}_monthlyArchive`)
     loadFromLocal()
+  }
+
+  // Archive a month's income/expense totals before its transactions are cleared,
+  // so historical trend charts keep showing that month after a reset.
+  const archiveMonthTotals = (monthKey, monthTransactions) => {
+    const income = monthTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0)
+    const expenses = monthTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0)
+
+    const existing = monthlyArchive.find(m => m.month === monthKey)
+    const next = existing
+      ? monthlyArchive.map(m => m.month === monthKey
+          ? { month: monthKey, income: m.income + income, expenses: m.expenses + expenses }
+          : m)
+      : [...monthlyArchive, { month: monthKey, income, expenses }]
+
+    setMonthlyArchive(next)
+    saveToLocal('monthlyArchive', next)
   }
 
   // Fetch all data from backend
@@ -186,11 +210,12 @@ export const DataProvider = ({ children }) => {
   const clearCurrentMonthTransactions = async () => {
     const now = new Date()
     const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-    const idsToDelete = transactions
-      .filter(t => (t.date || '').startsWith(currentMonthKey))
-      .map(t => t._id || t.id)
+    const monthTransactions = transactions.filter(t => (t.date || '').startsWith(currentMonthKey))
+    const idsToDelete = monthTransactions.map(t => t._id || t.id)
 
     if (idsToDelete.length === 0) return
+
+    archiveMonthTotals(currentMonthKey, monthTransactions)
 
     const remaining = transactions.filter(t => !idsToDelete.includes(t._id || t.id))
 
@@ -506,6 +531,7 @@ export const DataProvider = ({ children }) => {
     goals,
     reminders,
     notes,
+    monthlyArchive,
     loading,
     isReadOnly: !!currentUser?.isGuest,
     addTransaction: guardWrite(addTransaction),

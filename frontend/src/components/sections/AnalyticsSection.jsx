@@ -5,7 +5,7 @@ import { format, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths, parse
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, BarElement, RadialLinearScale);
 
-const AnalyticsSection = ({ transactions }) => {
+const AnalyticsSection = ({ transactions, monthlyArchive = [] }) => {
   // Monthly trend (last 12 months)
   const last12Months = eachMonthOfInterval({
     start: subMonths(new Date(), 11),
@@ -15,19 +15,24 @@ const AnalyticsSection = ({ transactions }) => {
   const monthlyTrend = last12Months.map(month => {
     const monthStart = startOfMonth(month);
     const monthEnd = endOfMonth(month);
-    
+    const monthKey = format(month, 'yyyy-MM');
+
     const monthTransactions = transactions.filter(t => {
       const tDate = new Date(t.date);
       return tDate >= monthStart && tDate <= monthEnd;
     });
 
+    // Include totals archived before a "Réinitialiser le mois" wipe, so the
+    // trend keeps that month's history even once its transactions are gone.
+    const archived = monthlyArchive.find(m => m.month === monthKey)
+
     const income = monthTransactions
       .filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
-    
+      .reduce((sum, t) => sum + parseFloat(t.amount), 0) + (archived?.income || 0);
+
     const expenses = monthTransactions
       .filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+      .reduce((sum, t) => sum + parseFloat(t.amount), 0) + (archived?.expenses || 0);
 
     return {
       month: format(month, 'MMM yyyy'),

@@ -28,7 +28,7 @@ import FinanceSimulatorSection from '../components/sections/FinanceSimulatorSect
 
 const Dashboard = () => {
   const { currentUser, isGuest } = useAuth()
-  const { transactions, goals, reminders, notes, folders, clearCurrentMonthTransactions, resetGuestData } = useData()
+  const { transactions, goals, reminders, notes, folders, monthlyArchive, clearCurrentMonthTransactions, resetGuestData } = useData()
   
   const [activeSection, setActiveSection] = useState('dashboard')
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
@@ -170,7 +170,7 @@ const Dashboard = () => {
 
           {/* Analytics Section */}
           {activeSection === 'analytics' && (
-            <AnalyticsSection transactions={transactions} />
+            <AnalyticsSection transactions={transactions} monthlyArchive={monthlyArchive} />
           )}
 
           {/* Folders Section */}
