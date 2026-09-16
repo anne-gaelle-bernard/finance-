@@ -2,7 +2,7 @@
 
 Application full-stack de gestion financière avec authentification, dashboard, transactions, objectifs et rappels.
 
-## 📁 Structure du projet
+##  Structure du projet
 
 ```
 finance-/
@@ -34,7 +34,7 @@ finance-/
 └── README.md           # Ce fichier
 ```
 
-## 🚀 Démarrage rapide
+## Démarrage rapide
 
 ### Option 1: Version React (Recommandé)
 
@@ -63,44 +63,44 @@ python -m http.server 8080
 ```
 → Application accessible sur `http://localhost:8080/login.html`
 
-## ✨ Fonctionnalités
+##  Fonctionnalités
 
-### 🔐 Authentification
-- ✅ Inscription avec validation de mot de passe
-- ✅ Connexion sécurisée
-- ✅ Déconnexion
-- ✅ Routes protégées
-- ✅ Stockage localStorage (frontend) / JWT (backend)
+###  Authentification
+-  Inscription avec validation de mot de passe
+-  Connexion sécurisée
+-  Déconnexion
+-  Routes protégées
+-  Stockage localStorage (frontend) / JWT (backend)
 
-### 📊 Dashboard
-- ✅ Cartes de statistiques (revenus, dépenses, économies)
-- ✅ Graphique circulaire des dépenses par catégorie
-- ✅ Liste des transactions récentes
-- ✅ Actions rapides (ajout revenus/dépenses)
+###  Dashboard
+-  Cartes de statistiques (revenus, dépenses, économies)
+-  Graphique circulaire des dépenses par catégorie
+-  Liste des transactions récentes
+-  Actions rapides (ajout revenus/dépenses)
 
-### 💰 Gestion financière
-- ✅ Ajout de revenus
-- ✅ Ajout de dépenses avec catégories
-- ✅ Historique complet des transactions
-- ✅ Filtres par catégorie et date
+###  Gestion financière
+-  Ajout de revenus
+-  Ajout de dépenses avec catégories
+- Historique complet des transactions
+-  Filtres par catégorie et date
 
-### 🎯 Objectifs financiers
-- ✅ Création d'objectifs avec montant cible
-- ✅ Suivi de progression avec barre interactive
-- ✅ Mise à jour en temps réel
-- ✅ Date limite optionnelle
+###  Objectifs financiers
+- Création d'objectifs avec montant cible
+-  Suivi e progression avec barre interactive
+-  Mise à jour en temps réel
+- Date limite optionnelle
 
-### ⏰ Rappels
-- ✅ Création de rappels programmés
-- ✅ Notifications (date + heure)
-- ✅ Notes optionnelles
-- ✅ Suppression facile
+###  Rappels
+-  Création de rappels programmés
+-  Notifications (date + heure)
+-  Notes optionnelles
+-  Suppression facile
 
-### 📁 Organisation
-- ✅ Dossiers de reçus colorés
-- ✅ Scanner OCR (Tesseract.js) - version HTML
-- ✅ Notes rapides
-- ✅ Calculatrice intégrée
+### Organisation
+-  Dossiers de reçus colorés
+-  Scanner OCR (Tesseract.js) - version HTML
+-  Notes rapides
+-  Calculatrice intégrée
 
 ## 🛠️ Technologies
 
@@ -127,13 +127,13 @@ python -m http.server 8080
 - **Tesseract.js** - OCR pour les reçus
 - **localStorage** - Persistance des données
 
-## 📱 Design responsive
+##  Design responsive
 
-✅ Mobile (320px+)
-✅ Tablette (768px+)
-✅ Desktop (1024px+)
+  Mobile (320px+)
+ Tablette (768px+)
+ Desktop (1024px+)
 
-## 🎨 Personnalisation
+##  Personnalisation
 
 ### Couleurs
 Les couleurs principales peuvent être modifiées dans:
@@ -143,7 +143,7 @@ Les couleurs principales peuvent être modifiées dans:
 ### Thèmes
 L'application supporte le mode clair par défaut. Le mode sombre peut être ajouté.
 
-## 📄 API Endpoints
+##  API Endpoints
 
 ### Authentication
 - `POST /api/auth/register` - Inscription
@@ -170,7 +170,7 @@ L'application supporte le mode clair par défaut. Le mode sombre peut être ajou
 - `GET /api/notes` - Notes
 - `POST /api/notes` - Créer une note
 
-## 🔧 Scripts disponibles
+##  Scripts disponibles
 
 ### Frontend
 ```bash
@@ -220,7 +220,7 @@ curl https://votre-projet.up.railway.app/api/health
 https://votre-app.vercel.app
 ```
 
-## 🔧 Variables d'Environnement
+##  Variables d'Environnement
 
 ### Backend (.env)
 ```
@@ -241,7 +241,7 @@ VITE_API_URL=http://localhost:5000/api
 VITE_API_URL=https://votre-backend.up.railway.app/api
 ```
 
-## 🐛 Dépannage
+## Dépannage
 
 ### Frontend ne peut pas se connecter à l'API
 - Vérifier `VITE_API_URL` 
@@ -258,10 +258,10 @@ VITE_API_URL=https://votre-backend.up.railway.app/api
 - Vérifier la connexion à MongoDB
 - Consulter les logs Railway/Vercel
 
-## 📄 Licence
+##  Licence
 
 MIT
 
-## 👨‍💻 Auteur
+##  Auteur
 
 Finance Tracker - Projet personnel
