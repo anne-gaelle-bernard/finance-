@@ -235,6 +235,25 @@ export const DataProvider = ({ children }) => {
     }
   }
 
+  const clearAllTransactions = async () => {
+    if (transactions.length === 0) return
+
+    const token = localStorage.getItem('token')
+    if (!token) {
+      setTransactions([])
+      saveToLocal('transactions', [])
+      return
+    }
+
+    try {
+      await Promise.all(transactions.map(t => transactionAPI.delete(t._id || t.id)))
+      setTransactions([])
+    } catch (error) {
+      console.error('Error clearing all transactions:', error)
+      throw error
+    }
+  }
+
   // Goal operations
   const addGoal = async (goal) => {
     const token = localStorage.getItem('token')
@@ -537,6 +556,7 @@ export const DataProvider = ({ children }) => {
     addTransaction: guardWrite(addTransaction),
     deleteTransaction: guardWrite(deleteTransaction),
     clearCurrentMonthTransactions: guardWrite(clearCurrentMonthTransactions),
+    clearAllTransactions: guardWrite(clearAllTransactions),
     addGoal: guardWrite(addGoal),
     updateGoal: guardWrite(updateGoal),
     deleteGoal: guardWrite(deleteGoal),

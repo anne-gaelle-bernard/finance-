@@ -28,7 +28,7 @@ import FinanceSimulatorSection from '../components/sections/FinanceSimulatorSect
 
 const Dashboard = () => {
   const { currentUser, isGuest } = useAuth()
-  const { transactions, goals, reminders, notes, folders, monthlyArchive, clearCurrentMonthTransactions, resetGuestData } = useData()
+  const { transactions, goals, reminders, notes, folders, monthlyArchive, clearCurrentMonthTransactions, clearAllTransactions, resetGuestData } = useData()
   
   const [activeSection, setActiveSection] = useState('dashboard')
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
@@ -78,6 +78,21 @@ const Dashboard = () => {
       } catch (error) {
         console.error('Error clearing month:', error)
         window.alert('Une erreur est survenue lors de la réinitialisation du mois.')
+      }
+    }
+  }
+
+  const handleClearAll = async () => {
+    if (transactions.length === 0) {
+      window.alert('Aucune transaction à supprimer.')
+      return
+    }
+    if (window.confirm('Supprimer TOUTES les transactions (revenus et dépenses, tout historique confondu) ? Cette action est irréversible.')) {
+      try {
+        await clearAllTransactions()
+      } catch (error) {
+        console.error('Error clearing all transactions:', error)
+        window.alert('Une erreur est survenue lors de la réinitialisation.')
       }
     }
   }
@@ -133,13 +148,22 @@ const Dashboard = () => {
                   <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Dashboard</h1>
                   <p className="text-gray-600">Bienvenue, {currentUser?.name}</p>
                 </div>
-                <button
-                  onClick={handleClearMonth}
-                  className="btn-outline flex items-center gap-2 text-sm"
-                >
-                  <i className="fas fa-rotate-left"></i>
-                  Réinitialiser le mois
-                </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    onClick={handleClearMonth}
+                    className="btn-outline flex items-center gap-2 text-sm"
+                  >
+                    <i className="fas fa-rotate-left"></i>
+                    Réinitialiser le mois
+                  </button>
+                  <button
+                    onClick={handleClearAll}
+                    className="btn-outline flex items-center gap-2 text-sm !text-red-600 !border-red-300 hover:!bg-red-50"
+                  >
+                    <i className="fas fa-trash"></i>
+                    Tout réinitialiser
+                  </button>
+                </div>
               </div>
 
               <StatsCards

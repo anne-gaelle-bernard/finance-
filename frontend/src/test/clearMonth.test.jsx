@@ -5,7 +5,7 @@ import { AuthProvider } from '../contexts/AuthContext'
 import { DataProvider, useData } from '../contexts/DataContext'
 
 const TestHarness = () => {
-  const { transactions, addTransaction, clearCurrentMonthTransactions } = useData()
+  const { transactions, addTransaction, clearCurrentMonthTransactions, clearAllTransactions } = useData()
 
   return (
     <div>
@@ -16,6 +16,7 @@ const TestHarness = () => {
         add-last-month
       </button>
       <button onClick={() => clearCurrentMonthTransactions()}>clear-month</button>
+      <button onClick={() => clearAllTransactions()}>clear-all</button>
       <ul>
         {transactions.map(t => <li key={t.id}>{t.description}</li>)}
       </ul>
@@ -59,5 +60,26 @@ describe('clearCurrentMonthTransactions (offline/local storage mode)', () => {
       expect(screen.queryByText('Ce mois')).not.toBeInTheDocument()
     })
     expect(screen.getByText('Mois dernier')).toBeInTheDocument()
+  })
+})
+
+describe('clearAllTransactions (offline/local storage mode)', () => {
+  it('removes every transaction regardless of date', async () => {
+    renderHarness()
+
+    fireEvent.click(screen.getByText('add-this-month'))
+    fireEvent.click(screen.getByText('add-last-month'))
+
+    await waitFor(() => {
+      expect(screen.getByText('Ce mois')).toBeInTheDocument()
+      expect(screen.getByText('Mois dernier')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByText('clear-all'))
+
+    await waitFor(() => {
+      expect(screen.queryByText('Ce mois')).not.toBeInTheDocument()
+      expect(screen.queryByText('Mois dernier')).not.toBeInTheDocument()
+    })
   })
 })
