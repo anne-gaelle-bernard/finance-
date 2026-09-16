@@ -61,9 +61,24 @@ const Dashboard = () => {
     setActiveSection(section)
   }
 
-  const handleClearMonth = () => {
+  const hasCurrentMonthTransactions = () => {
+    const now = new Date()
+    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    return transactions.some(t => (t.date || '').startsWith(currentMonthKey))
+  }
+
+  const handleClearMonth = async () => {
+    if (!hasCurrentMonthTransactions()) {
+      window.alert('Aucune transaction ce mois-ci à supprimer.')
+      return
+    }
     if (window.confirm('Supprimer toutes les transactions du mois en cours ? Cette action est irréversible.')) {
-      clearCurrentMonthTransactions()
+      try {
+        await clearCurrentMonthTransactions()
+      } catch (error) {
+        console.error('Error clearing month:', error)
+        window.alert('Une erreur est survenue lors de la réinitialisation du mois.')
+      }
     }
   }
 
