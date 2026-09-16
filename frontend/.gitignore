@@ -9,3 +9,6 @@ build/
 *.log
 .vscode/
 coverage/
+test-results/
+playwright-report/
+playwright/.cache/

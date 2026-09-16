@@ -30,7 +30,46 @@ export const DataProvider = ({ children }) => {
 
   const getUserKey = () => currentUser?.email || 'guest'
 
+  const GUEST_READONLY_MESSAGE = 'Mode visiteur : lecture seule. Créez un compte pour enregistrer vos données.'
+
+  const seedGuestDataIfNeeded = () => {
+    const userKey = getUserKey()
+    if (localStorage.getItem(`${userKey}_transactions`)) return
+
+    const today = new Date()
+    const isoDaysAgo = (days) => {
+      const d = new Date(today)
+      d.setDate(d.getDate() - days)
+      return d.toISOString().split('T')[0]
+    }
+
+    const demoTransactions = [
+      { id: 'demo-1', type: 'income', description: 'Salaire', amount: 2400, date: isoDaysAgo(2), category: 'salary', notes: '' },
+      { id: 'demo-2', type: 'expense', description: 'Courses', amount: 86.4, date: isoDaysAgo(1), category: 'food', notes: '' },
+      { id: 'demo-3', type: 'expense', description: 'Loyer', amount: 750, date: isoDaysAgo(5), category: 'housing', notes: '' },
+      { id: 'demo-4', type: 'expense', description: 'Transport', amount: 45, date: isoDaysAgo(3), category: 'transport', notes: '' },
+      { id: 'demo-5', type: 'income', description: 'Vente en ligne', amount: 120, date: isoDaysAgo(7), category: 'other', notes: '' }
+    ]
+    const demoGoals = [
+      { id: 'demo-goal-1', name: 'Fonds d\'urgence', targetAmount: 3000, currentAmount: 950 }
+    ]
+    const demoFolders = []
+    const demoReminders = [
+      { id: 'demo-reminder-1', title: 'Facture électricité', date: isoDaysAgo(-4), amount: 60 }
+    ]
+    const demoNotes = [
+      { id: 'demo-note-1', title: 'Bienvenue', content: 'Ceci est un compte de démonstration en lecture seule.', createdAt: new Date().toISOString() }
+    ]
+
+    localStorage.setItem(`${userKey}_transactions`, JSON.stringify(demoTransactions))
+    localStorage.setItem(`${userKey}_goals`, JSON.stringify(demoGoals))
+    localStorage.setItem(`${userKey}_folders`, JSON.stringify(demoFolders))
+    localStorage.setItem(`${userKey}_reminders`, JSON.stringify(demoReminders))
+    localStorage.setItem(`${userKey}_notes`, JSON.stringify(demoNotes))
+  }
+
   const loadFromLocal = () => {
+    if (currentUser?.isGuest) seedGuestDataIfNeeded()
     const userKey = getUserKey()
     setTransactions(JSON.parse(localStorage.getItem(`${userKey}_transactions`)) || [])
     setFolders(JSON.parse(localStorage.getItem(`${userKey}_folders`)) || [])
@@ -42,6 +81,17 @@ export const DataProvider = ({ children }) => {
   const saveToLocal = (key, value) => {
     const userKey = getUserKey()
     localStorage.setItem(`${userKey}_${key}`, JSON.stringify(value))
+  }
+
+  const resetGuestData = () => {
+    if (!currentUser?.isGuest) return
+    const userKey = getUserKey()
+    localStorage.removeItem(`${userKey}_transactions`)
+    localStorage.removeItem(`${userKey}_folders`)
+    localStorage.removeItem(`${userKey}_goals`)
+    localStorage.removeItem(`${userKey}_reminders`)
+    localStorage.removeItem(`${userKey}_notes`)
+    loadFromLocal()
   }
 
   // Fetch all data from backend
@@ -129,6 +179,33 @@ export const DataProvider = ({ children }) => {
       setTransactions(transactions.filter(t => t._id !== id && t.id !== id))
     } catch (error) {
       console.error('Error deleting transaction:', error)
+      throw error
+    }
+  }
+
+  const clearCurrentMonthTransactions = async () => {
+    const now = new Date()
+    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    const idsToDelete = transactions
+      .filter(t => (t.date || '').startsWith(currentMonthKey))
+      .map(t => t._id || t.id)
+
+    if (idsToDelete.length === 0) return
+
+    const remaining = transactions.filter(t => !idsToDelete.includes(t._id || t.id))
+
+    const token = localStorage.getItem('token')
+    if (!token) {
+      setTransactions(remaining)
+      saveToLocal('transactions', remaining)
+      return
+    }
+
+    try {
+      await Promise.all(idsToDelete.map(id => transactionAPI.delete(id)))
+      setTransactions(remaining)
+    } catch (error) {
+      console.error('Error clearing month transactions:', error)
       throw error
     }
   }
@@ -415,6 +492,14 @@ export const DataProvider = ({ children }) => {
     }
   }
 
+  const guardWrite = (fn) => async (...args) => {
+    if (currentUser?.isGuest) {
+      window.alert(GUEST_READONLY_MESSAGE)
+      return
+    }
+    return fn(...args)
+  }
+
   const value = {
     transactions,
     folders,
@@ -422,21 +507,24 @@ export const DataProvider = ({ children }) => {
     reminders,
     notes,
     loading,
-    addTransaction,
-    deleteTransaction,
-    addGoal,
-    updateGoal,
-    deleteGoal,
-    addReminder,
-    deleteReminder,
-    addNote,
-    updateNote,
-    deleteNote,
-    addFolder,
-    deleteFolder,
-    addReceiptToFolder,
-    deleteReceiptFromFolder,
-    refreshData: fetchAllData
+    isReadOnly: !!currentUser?.isGuest,
+    addTransaction: guardWrite(addTransaction),
+    deleteTransaction: guardWrite(deleteTransaction),
+    clearCurrentMonthTransactions: guardWrite(clearCurrentMonthTransactions),
+    addGoal: guardWrite(addGoal),
+    updateGoal: guardWrite(updateGoal),
+    deleteGoal: guardWrite(deleteGoal),
+    addReminder: guardWrite(addReminder),
+    deleteReminder: guardWrite(deleteReminder),
+    addNote: guardWrite(addNote),
+    updateNote: guardWrite(updateNote),
+    deleteNote: guardWrite(deleteNote),
+    addFolder: guardWrite(addFolder),
+    deleteFolder: guardWrite(deleteFolder),
+    addReceiptToFolder: guardWrite(addReceiptToFolder),
+    deleteReceiptFromFolder: guardWrite(deleteReceiptFromFolder),
+    refreshData: fetchAllData,
+    resetGuestData
   }
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>

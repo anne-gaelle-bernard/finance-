@@ -1,8 +1,11 @@
 import { useAuth } from '../contexts/AuthContext'
+import { useData } from '../contexts/DataContext'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { Wallet } from 'lucide-react'
 
 const Navbar = ({ userName }) => {
-  const { logout } = useAuth()
+  const { logout, isGuest } = useAuth()
+  const { resetGuestData } = useData()
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -11,12 +14,33 @@ const Navbar = ({ userName }) => {
     navigate('/login')
   }
 
+  const handleResetDemo = () => {
+    if (window.confirm('Réinitialiser les données de démonstration ?')) {
+      resetGuestData()
+    }
+  }
+
   return (
     <nav className="gradient-bg shadow-lg">
+      {isGuest && (
+        <div className="bg-amber-400 text-amber-900 text-xs sm:text-sm font-medium text-center py-1.5 px-3 flex items-center justify-center gap-3 flex-wrap">
+          <span>
+            <i className="fas fa-eye mr-1"></i>
+            Mode visiteur — données de démonstration, lecture seule
+          </span>
+          <button
+            onClick={handleResetDemo}
+            className="underline hover:no-underline font-semibold"
+          >
+            <i className="fas fa-rotate-left mr-1"></i>
+            Réinitialiser
+          </button>
+        </div>
+      )}
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14 sm:h-16">
           <div className="flex items-center">
-            <div className="text-xl sm:text-2xl mr-2 sm:mr-3">💸</div>
+            <div className="mr-2 sm:mr-3"><Wallet className="w-5 h-5 sm:w-6 sm:h-6 text-white" /></div>
             <h1 className="text-base sm:text-xl md:text-2xl font-bold text-white">Finance Tracker</h1>
           </div>
 

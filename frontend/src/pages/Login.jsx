@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { Download } from 'lucide-react'
+import { Download, Wallet } from 'lucide-react'
 
 const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
-  const { login } = useAuth()
+  const { login, loginAsGuest } = useAuth()
   const [deferredPrompt, setDeferredPrompt] = useState(null)
   const [isInstalled, setIsInstalled] = useState(false)
 
@@ -48,7 +48,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center p-3 sm:p-4">
       <div className="glass-card rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md w-full">
         <div className="text-center mb-6 sm:mb-8">
-          <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">💸</div>
+          <div className="flex justify-center mb-3 sm:mb-4"><Wallet className="w-10 h-10 sm:w-12 sm:h-12 text-emerald-600" /></div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Finance Tracker</h1>
           <p className="text-sm sm:text-base text-gray-600">Connectez-vous à votre compte</p>
         </div>
@@ -121,6 +121,17 @@ const Login = () => {
             Inscrivez-vous
           </Link>
         </p>
+
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <button
+            type="button"
+            onClick={loginAsGuest}
+            className="w-full btn-outline py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2"
+          >
+            <i className="fas fa-eye"></i>
+            Continuer en visiteur (démo)
+          </button>
+        </div>
 
         {!isInstalled && deferredPrompt && (
           <div className="mt-6 pt-6 border-t border-gray-100">

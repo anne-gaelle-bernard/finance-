@@ -51,7 +51,7 @@ const ResetPassword = () => {
     <div className="min-h-screen flex items-center justify-center p-3 sm:p-4">
       <div className="glass-card rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md w-full">
         <div className="text-center mb-6 sm:mb-8">
-          <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">🔑</div>
+          <div className="text-4xl sm:text-5xl mb-3 sm:mb-4"><i className="fas fa-key"></i></div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Nouveau mot de passe</h1>
           <p className="text-sm sm:text-base text-gray-600">
             Choisissez un nouveau mot de passe pour votre compte
@@ -68,7 +68,7 @@ const ResetPassword = () => {
 
         {success ? (
           <div className="text-center space-y-4">
-            <div className="text-5xl mb-4">✅</div>
+            <div className="text-5xl mb-4"><i className="fas fa-circle-check text-green-500"></i></div>
             <p className="text-gray-700">
               Votre mot de passe a été réinitialisé avec succès !
             </p>

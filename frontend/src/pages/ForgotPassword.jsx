@@ -35,7 +35,7 @@ const ForgotPassword = () => {
     <div className="min-h-screen flex items-center justify-center p-3 sm:p-4">
       <div className="glass-card rounded-2xl shadow-2xl p-6 sm:p-8 max-w-md w-full">
         <div className="text-center mb-6 sm:mb-8">
-          <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">🔒</div>
+          <div className="text-4xl sm:text-5xl mb-3 sm:mb-4"><i className="fas fa-lock"></i></div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Mot de passe oublié</h1>
           <p className="text-sm sm:text-base text-gray-600">
             Entrez votre adresse email pour recevoir un lien de réinitialisation
@@ -52,7 +52,7 @@ const ForgotPassword = () => {
 
         {sent ? (
           <div className="text-center space-y-4">
-            <div className="text-5xl mb-4">📧</div>
+            <div className="text-5xl mb-4"><i className="fas fa-envelope"></i></div>
             <p className="text-gray-700">
               Vérifiez votre boîte de réception et suivez les instructions pour réinitialiser votre mot de passe.
             </p>

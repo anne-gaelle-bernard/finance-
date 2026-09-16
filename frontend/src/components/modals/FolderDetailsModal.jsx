@@ -42,7 +42,7 @@ const FolderDetailsModal = ({ folder, onClose }) => {
         <div className={`bg-gradient-to-r ${getColorClass(folder.color)} text-white p-6 rounded-t-xl`}>
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-2xl font-bold mb-2">📁 {folder.name}</h2>
+              <h2 className="text-2xl font-bold mb-2"><i className="fas fa-folder mr-2"></i>{folder.name}</h2>
               <p className="opacity-90">
                 {folder.receipts?.length || 0} receipt{folder.receipts?.length !== 1 ? 's' : ''} • {formatCurrency(folder.totalAmount || 0)}
               </p>

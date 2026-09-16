@@ -95,7 +95,7 @@ const AddReceiptModal = ({ onClose }) => {
       <div className="bg-white rounded-xl max-w-2xl w-full shadow-2xl my-8">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-800">📸 Scan Receipt</h2>
+            <h2 className="text-xl font-bold text-gray-800"><i className="fas fa-receipt mr-2"></i>Scan Receipt</h2>
             <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
               <i className="fas fa-times text-xl"></i>
             </button>
@@ -209,13 +209,13 @@ const AddReceiptModal = ({ onClose }) => {
                   onChange={(e) => setManualEntry({...manualEntry, category: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 >
-                  <option value="food">🍔 Food & Dining</option>
-                  <option value="transport">🚗 Transport</option>
-                  <option value="shopping">🛍️ Shopping</option>
-                  <option value="healthcare">💊 Healthcare</option>
-                  <option value="entertainment">🎮 Entertainment</option>
-                  <option value="utilities">💡 Utilities</option>
-                  <option value="other">📦 Other</option>
+                  <option value="food">Food & Dining</option>
+                  <option value="transport">Transport</option>
+                  <option value="shopping">Shopping</option>
+                  <option value="healthcare">Healthcare</option>
+                  <option value="entertainment">Entertainment</option>
+                  <option value="utilities">Utilities</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
 

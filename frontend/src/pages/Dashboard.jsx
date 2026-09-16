@@ -27,8 +27,8 @@ import FoldersSection from '../components/sections/FoldersSection'
 import FinanceSimulatorSection from '../components/sections/FinanceSimulatorSection'
 
 const Dashboard = () => {
-  const { currentUser } = useAuth()
-  const { transactions, goals, reminders, notes, folders } = useData()
+  const { currentUser, isGuest } = useAuth()
+  const { transactions, goals, reminders, notes, folders, clearCurrentMonthTransactions, resetGuestData } = useData()
   
   const [activeSection, setActiveSection] = useState('dashboard')
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
@@ -61,6 +61,18 @@ const Dashboard = () => {
     setActiveSection(section)
   }
 
+  const handleClearMonth = () => {
+    if (window.confirm('Supprimer toutes les transactions du mois en cours ? Cette action est irréversible.')) {
+      clearCurrentMonthTransactions()
+    }
+  }
+
+  const handleResetDemo = () => {
+    if (window.confirm('Réinitialiser les données de démonstration ?')) {
+      resetGuestData()
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex">
       {/* Sidebar */}
@@ -73,6 +85,18 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <div className="flex-1 min-h-screen overflow-auto">
+        {isGuest && (
+          <div className="bg-amber-400 text-amber-900 text-xs sm:text-sm font-medium text-center py-1.5 px-3 flex items-center justify-center gap-3 flex-wrap sticky top-0 z-30">
+            <span>
+              <i className="fas fa-eye mr-1"></i>
+              Mode visiteur — données de démonstration, lecture seule
+            </span>
+            <button onClick={handleResetDemo} className="underline hover:no-underline font-semibold">
+              <i className="fas fa-rotate-left mr-1"></i>
+              Réinitialiser
+            </button>
+          </div>
+        )}
         {/* Mobile Header */}
         <div className="lg:hidden sticky top-0 z-30 bg-white shadow-md px-4 py-3 flex items-center justify-between">
           <button
@@ -81,7 +105,7 @@ const Dashboard = () => {
           >
             <Menu size={24} className="text-gray-700" />
           </button>
-          <h1 className="text-lg font-bold text-gray-800">💸 Finance Tracker</h1>
+          <h1 className="text-lg font-bold text-gray-800"><i className="fas fa-wallet mr-2"></i>Finance Tracker</h1>
           <div className="w-10"></div>
         </div>
 
@@ -90,9 +114,18 @@ const Dashboard = () => {
           {/* Dashboard Section */}
           {activeSection === 'dashboard' && (
             <>
-              <div className="mb-6">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Dashboard</h1>
-                <p className="text-gray-600">Bienvenue, {currentUser?.name}</p>
+              <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Dashboard</h1>
+                  <p className="text-gray-600">Bienvenue, {currentUser?.name}</p>
+                </div>
+                <button
+                  onClick={handleClearMonth}
+                  className="btn-outline flex items-center gap-2 text-sm"
+                >
+                  <i className="fas fa-rotate-left"></i>
+                  Réinitialiser le mois
+                </button>
               </div>
 
               <StatsCards

@@ -268,7 +268,7 @@ const FinanceSimulatorSection = () => {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">💰 Finance Simulators</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2"><i className="fas fa-sack-dollar mr-2"></i>Finance Simulators</h1>
         <p className="text-gray-600">Planifiez votre avenir financier avec nos simulateurs</p>
       </div>
 
@@ -699,7 +699,7 @@ const FinanceSimulatorSection = () => {
                     </div>
                   ) : (
                     <div className="text-red-600">
-                      ⚠️ Your monthly payment is too low to pay off this debt. 
+                      <i className="fas fa-triangle-exclamation mr-2"></i>Your monthly payment is too low to pay off this debt.
                       Please increase the monthly payment amount.
                     </div>
                   )}

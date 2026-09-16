@@ -5,7 +5,7 @@ const NotesList = ({ notes }) => {
 
   return (
     <div className="glass-card rounded-xl shadow-md p-6">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">📝 Quick Notes</h2>
+      <h2 className="text-xl font-bold text-gray-800 mb-4"><i className="fas fa-note-sticky mr-2"></i>Quick Notes</h2>
       
       <div className="space-y-3">
         {notes.length === 0 ? (

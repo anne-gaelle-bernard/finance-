@@ -3,109 +3,105 @@
 @tailwind utilities;
 
 :root {
-  --pink-light: #fff5f8;
-  --pink-soft: #ffeaf1;
-  --pink-main: #ec4899;
-  --pink-deep: #db2777;
-  --bg-start: #fff1f7;
-  --bg-end: #fde7ef;
+  --pink-light: #eef2ff;
+  --pink-soft: #e0e7ff;
+  --pink-main: #4f46e5;
+  --pink-deep: #4338ca;
+  --bg-start: #f8fafc;
+  --bg-end: #f1f5f9;
 }
 
 body {
   margin: 0;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+  background: var(--bg-start);
   min-height: 100vh;
 }
 
 .gradient-bg {
-  background: linear-gradient(135deg, #ff85a2 0%, #ff5ea0 100%);
+  background: #4338ca;
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
 }
 
 .card-hover {
-  transition: all 0.3s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .card-hover:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border-color: #c7d2fe;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.08);
 }
 
 .btn {
-  border-radius: 9999px;
+  border-radius: 0.625rem;
   padding: 0.75rem 1rem;
   background: var(--pink-main);
   color: #ffffff;
-  box-shadow: 0 10px 25px rgba(233, 30, 99, 0.12);
-  transition: all 0.18s ease;
+  box-shadow: none;
+  transition: background 0.15s ease;
   font-weight: 600;
   border: none;
   cursor: pointer;
 }
 
 .btn:hover {
-  transform: translateY(-1px);
-  opacity: 0.97;
   background: var(--pink-deep);
 }
 
 .btn-outline {
-  border-radius: 9999px;
+  border-radius: 0.625rem;
   padding: 0.6rem 1rem;
-  border: 1px solid var(--pink-main);
-  color: var(--pink-main);
+  border: 1px solid #cbd5e1;
+  color: #334155;
   background: transparent;
-  transition: all 0.18s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
   font-weight: 600;
   cursor: pointer;
 }
 
 .btn-outline:hover {
-  transform: translateY(-1px);
-  background: rgba(233, 30, 99, 0.06);
+  border-color: var(--pink-main);
+  background: rgba(79, 70, 229, 0.04);
 }
 
 .icon-btn {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
-  background: rgba(233, 30, 99, 0.10);
+  border-radius: 0.75rem;
+  background: rgba(79, 70, 229, 0.08);
   color: var(--pink-main);
-  box-shadow: 0 10px 25px rgba(233, 30, 99, 0.12);
-  transition: all 0.18s ease;
+  box-shadow: none;
+  transition: background 0.15s ease;
   border: none;
   cursor: pointer;
 }
 
 .icon-btn:hover {
-  transform: translateY(-1px);
-  background: rgba(233, 30, 99, 0.15);
+  background: rgba(79, 70, 229, 0.14);
 }
 
 /* Responsive Improvements */
 @media (max-width: 640px) {
   .icon-btn {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
   }
-  
+
   .icon-btn i {
     font-size: 1.125rem;
   }
-  
+
   .glass-card {
     padding: 1rem !important;
   }

@@ -16,7 +16,7 @@ const GoalsList = ({ goals }) => {
 
   return (
     <div className="glass-card rounded-xl shadow-md p-6">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">🎯 Financial Goals</h2>
+      <h2 className="text-xl font-bold text-gray-800 mb-4"><i className="fas fa-bullseye mr-2"></i>Financial Goals</h2>
       
       <div className="space-y-4">
         {goals.length === 0 ? (

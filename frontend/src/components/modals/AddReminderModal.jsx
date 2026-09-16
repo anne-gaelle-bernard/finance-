@@ -26,7 +26,7 @@ const AddReminderModal = ({ onClose }) => {
       <div className="bg-white rounded-xl max-w-md w-full">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-800">📅 Add Reminder</h2>
+            <h2 className="text-xl font-bold text-gray-800"><i className="fas fa-bell mr-2"></i>Add Reminder</h2>
             <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
               <i className="fas fa-times text-xl"></i>
             </button>

@@ -1,4 +1,4 @@
-# 💸 Finance Tracker - Application complète de gestion financière
+#  Finance Tracker - Application complète de gestion financière
 
 Application full-stack de gestion financière avec authentification, dashboard, transactions, objectifs et rappels.
 
@@ -62,7 +62,6 @@ cd html-version
 python -m http.server 8080
 ```
 → Application accessible sur `http://localhost:8080/login.html`
-
 ##  Fonctionnalités
 
 ###  Authentification
@@ -81,13 +80,13 @@ python -m http.server 8080
 ###  Gestion financière
 -  Ajout de revenus
 -  Ajout de dépenses avec catégories
-- Historique complet des transactions
+-  Historique complet des transactions
 -  Filtres par catégorie et date
 
 ###  Objectifs financiers
-- Création d'objectifs avec montant cible
--  Suivi e progression avec barre interactive
--  Mise à jour en temps réel
+-  Création d'objectifs avec montant cible
+- Suivi de progression avec barre interactive
+- Mise à jour en temps réel
 - Date limite optionnelle
 
 ###  Rappels
@@ -96,9 +95,9 @@ python -m http.server 8080
 -  Notes optionnelles
 -  Suppression facile
 
-### Organisation
+###  Organisation
 -  Dossiers de reçus colorés
--  Scanner OCR (Tesseract.js) - version HTML
+- Scanner OCR (Tesseract.js) - version HTML
 -  Notes rapides
 -  Calculatrice intégrée
 
@@ -129,7 +128,7 @@ python -m http.server 8080
 
 ##  Design responsive
 
-  Mobile (320px+)
+ Mobile (320px+)
  Tablette (768px+)
  Desktop (1024px+)
 
@@ -177,15 +176,47 @@ L'application supporte le mode clair par défaut. Le mode sombre peut être ajou
 npm run dev      # Démarre le serveur de développement
 npm run build    # Compile pour la production
 npm run preview  # Prévisualise le build de production
+npm run test     # Tests unitaires et d'intégration (Vitest)
+npm run test:e2e # Tests end-to-end (Playwright)
 ```
 
 ### Backend
 ```bash
 npm run dev      # Démarre le serveur avec nodemon
 npm start        # Démarre le serveur en production
+npm test         # Tests unitaires et d'intégration (Jest + Supertest)
 ```
 
-##  Déploiement en Production
+##  Tests
+
+### Backend — Jest + Supertest + mongodb-memory-server
+Tests unitaires (middleware d'authentification) et d'intégration (routes `/api/auth`, `/api/transactions`) exécutés contre une base MongoDB en mémoire, isolée du serveur réel.
+```bash
+cd backend
+npm test
+```
+- `tests/unit/` — logique isolée (ex. validation du token JWT)
+- `tests/integration/` — appels HTTP complets via `supertest` sur l'app Express (`server.js`)
+
+### Frontend — Vitest + React Testing Library
+Tests unitaires de composants et test d'intégration du flux d'accès visiteur (mode démo), avec un DOM simulé (jsdom).
+```bash
+cd frontend
+npm run test
+```
+- `src/components/*.test.jsx` — rendu et logique des composants
+- `src/test/guestFlow.test.jsx` — parcours complet visiteur (connexion démo, persistance de session)
+
+### Frontend — Playwright (end-to-end)
+Tests exécutés dans un vrai navigateur (Chromium) contre le build de production servi localement, sans backend requis pour le mode visiteur.
+```bash
+cd frontend
+npx playwright install chromium   # une seule fois
+npm run test:e2e
+```
+- `e2e/guest-access.spec.js` — redirection si non connecté, accès visiteur, données de démo, blocage des écritures, réinitialisation, persistance de session
+
+## Déploiement en Production
 
 ###  Déploiement Railway (Backend) + Vercel (Frontend)
 

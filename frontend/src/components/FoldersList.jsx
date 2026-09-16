@@ -45,7 +45,7 @@ const FoldersList = ({ onSelectFolder }) => {
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-base mb-1 truncate">
-                    📁 {folder.name}
+                    <i className="fas fa-folder mr-2"></i>{folder.name}
                   </h3>
                   <p className="text-sm opacity-80">
                     {folder.receipts?.length || 0} receipt{folder.receipts?.length !== 1 ? 's' : ''}

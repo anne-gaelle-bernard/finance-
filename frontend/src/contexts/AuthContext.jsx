@@ -21,9 +21,12 @@ export const AuthProvider = ({ children }) => {
     // Check for existing token and validate
     const token = localStorage.getItem('token')
     const savedUser = localStorage.getItem('currentUser')
-    
-    if (token && savedUser) {
-      setCurrentUser(JSON.parse(savedUser))
+
+    if (savedUser) {
+      const parsedUser = JSON.parse(savedUser)
+      if (token || parsedUser.isGuest) {
+        setCurrentUser(parsedUser)
+      }
     }
     setLoading(false)
   }, [])
@@ -101,6 +104,20 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
+  const loginAsGuest = () => {
+    const guestUser = {
+      id: 'guest',
+      name: 'Visiteur',
+      email: 'guest@demo.com',
+      isGuest: true
+    }
+    localStorage.removeItem('token')
+    localStorage.setItem('currentUser', JSON.stringify(guestUser))
+    setCurrentUser(guestUser)
+    navigate('/dashboard')
+    return { success: true, message: 'Mode démo activé' }
+  }
+
   const logout = () => {
     setCurrentUser(null)
     localStorage.removeItem('currentUser')
@@ -112,9 +129,11 @@ export const AuthProvider = ({ children }) => {
     currentUser,
     login,
     register,
+    loginAsGuest,
     logout,
     loading,
-    isAuthenticated: !!currentUser
+    isAuthenticated: !!currentUser,
+    isGuest: !!currentUser?.isGuest
   }
 
   if (loading) {

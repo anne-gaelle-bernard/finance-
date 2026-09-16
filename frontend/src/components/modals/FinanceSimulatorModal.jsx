@@ -271,7 +271,7 @@ const FinanceSimulatorModal = ({ isOpen, onClose }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-800">💰 Finance Simulator</h2>
+          <h2 className="text-2xl font-bold text-gray-800"><i className="fas fa-sack-dollar mr-2"></i>Finance Simulator</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={24} />
           </button>
@@ -703,7 +703,7 @@ const FinanceSimulatorModal = ({ isOpen, onClose }) => {
                     </div>
                   ) : (
                     <div className="text-red-600">
-                      ⚠️ Your monthly payment is too low to pay off this debt. 
+                      <i className="fas fa-triangle-exclamation mr-2"></i>Your monthly payment is too low to pay off this debt.
                       Please increase the monthly payment amount.
                     </div>
                   )}
